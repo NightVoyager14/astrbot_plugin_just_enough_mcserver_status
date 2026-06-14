@@ -251,7 +251,7 @@ class JEMSSPlugin(Star):
                         # 最后一位中断换行，正常向后渲染
                         if line_num == (len(component_multiline) - 1):
                             current_length = pic_draw.textlength(
-                                component, current_font
+                                component_multiline[line_num], current_font
                             )
                             current_x += current_length
                             continue
