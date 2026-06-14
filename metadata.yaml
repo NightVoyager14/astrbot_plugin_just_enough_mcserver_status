@@ -3,4 +3,4 @@ display_name: Just Enough McServer Status # 用于展示的名字，可以是方
 desc: 让AstrBot能展示minecraft服务器状态。 # 插件简短描述
 version: v1.0.0 # 插件版本号。格式：v1.1.1 或者 v1.1
 author: NightVoyager14 # 作者
-repo: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_stauts # 插件的仓库地址
+repo: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status # 插件的仓库地址
