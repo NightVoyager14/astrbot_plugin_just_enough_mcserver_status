@@ -79,42 +79,46 @@ class JEMSSPlugin(Star):
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
 
-    # 注册指令的装饰器。指令名为 helloworld。注册成功后，发送 `/helloworld` 就会触发这个指令，并回复 `你好, {user_name}!`
-    @filter.command("version")
+    @filter.command_group("jemss")
+    def jemss(self):
+        """"""
+        pass
+
+    @jemss.command("version")
     async def get_version(self, event: AstrMessageEvent):
-        """获得JEMSS的版本"""  # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
+        """获得JEMSS的版本"""
         user_name = event.get_sender_name()
-        message_str = event.message_str  # 用户发的纯文本消息字符串
-        message_chain = (
-            event.get_messages()
-        )  # 用户所发的消息的消息链 # from astrbot.api.message_components import *
+        message_chain = event.get_messages()
         logger.info(message_chain)
+        yield event.plain_result(f"Hello, {user_name}, JEMSS的版本为v1.0.0")
+
+    @jemss.command("help")
+    async def help(self, event: AstrMessageEvent):
+        """JEMSS的有关帮助"""
         yield event.plain_result(
-            f"Hello, {user_name}, 你发了 {message_str}, JEMSS的版本为v1.0.0"
-        )  # 发送一条纯文本消息
+            "/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称] :获取JE服务器状态"
+        )
 
     @filter.permission_type(filter.PermissionType.ADMIN)
     @filter.command("admin")
     async def admin_respon(self, event: AstrMessageEvent):
         """像admin一样回答"""
         user_name = event.get_sender_name()
-        message_chain = event.get_messages()
-        logger.info(message_chain)
-        yield event.plain_result(f"wow,{user_name}管理员来了呢！")
+        yield event.plain_result(f"WOW,{user_name}管理员来了呢！")
 
-    @filter.command_group("mc")
-    async def mc():
-        """查询服务有关信息"""
+    @filter.command_group("jeping")
+    async def jeping(self):
+        """查询Minecraft服务器有关信息"""
         pass
 
-    @mc.command("status")
+    @jeping.command("status")
     async def get_status(
         self,
         event: AstrMessageEvent,
         server_address: str,
         server_name: str | None = None,
     ):
-        """获取JE服务器状态 参数：/mc status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
+        """获取JE服务器状态 参数：/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
         # 用户输入处理
         server_address = server_address.strip()
 
@@ -124,7 +128,11 @@ class JEMSSPlugin(Star):
             server_status = await server.async_status()
         except Exception as e:
             logger.error(f"Can't get server information {server_address}")
-            logger.error(f"Error info: \n{e}")
+            logger.error(f"Error info: {e}")
+            yield event.plain_result(
+                "无法获取服务器信息，请检查输入服务器是否正确或稍后重试"
+            )
+            return
 
         # 信息图片渲染
         info_pic = self._server_info_render(server, server_status, event, server_name)
@@ -143,11 +151,11 @@ class JEMSSPlugin(Star):
         name: str | None,
     ) -> str:
         pic = Image.new("RGBA", (1248, 144))
-        pic_draw = ImageDraw.Draw(pic)
+        pic_drawer = ImageDraw.Draw(pic)
 
         # 设置背景
         background = Image.open(self.plugin_path / "assets/background_dark.png")
-        pic.paste(background, pic.getbbox())
+        pic.paste(background, (0, 0))
 
         # 添加服务器头像
         if status.icon and status.icon.startswith("data:image/png;base64,"):
@@ -160,14 +168,14 @@ class JEMSSPlugin(Star):
             pic.paste(self.unknown_icon, (20, 8), mask=self.unknown_icon)
 
         if name:
-            pic_draw.text(
+            pic_drawer.text(
                 (160, 8),
                 f"{name}",
                 font=self.font_title,
             )
         else:
             # 添加服务器地址
-            pic_draw.text(
+            pic_drawer.text(
                 (160, 8),
                 f"{server.address.host}:{server.address.port}",
                 font=self.font_title,
@@ -181,15 +189,15 @@ class JEMSSPlugin(Star):
             pic.paste(
                 self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
             )
-        elif status.latency > 50 and status.latency <= 100:
+        elif status.latency <= 100:
             pic.paste(
                 self.ping_icons["ping4"], (1200, 10), mask=self.ping_icons["ping4"]
             )
-        elif status.latency > 100 and status.latency <= 200:
+        elif status.latency <= 200:
             pic.paste(
                 self.ping_icons["ping3"], (1200, 10), mask=self.ping_icons["ping3"]
             )
-        elif status.latency > 200 and status.latency <= 500:
+        elif status.latency <= 500:
             pic.paste(
                 self.ping_icons["ping2"], (1200, 10), mask=self.ping_icons["ping2"]
             )
@@ -199,10 +207,10 @@ class JEMSSPlugin(Star):
             )
 
         # 添加在线人数显示
-        player_length = pic_draw.textlength(
+        player_length = pic_drawer.textlength(
             f"{status.players.online}/{status.players.max}", font=self.font_player
         )
-        pic_draw.text(
+        pic_drawer.text(
             (1190 - player_length, 15),
             f"{status.players.online}/{status.players.max}",
             font=self.font_player,
@@ -242,15 +250,25 @@ class JEMSSPlugin(Star):
                 if "\n" in component:
                     component_multiline = component.split("\n")
                     for line_num in range(len(component_multiline)):
-                        pic_draw.text(
+                        pic_drawer.text(
                             (current_x, current_y),
                             component_multiline[line_num],
                             current_color,
                             current_font,
                         )
+                        self._set_motd_line(
+                            pic_drawer,
+                            (current_x, current_y),
+                            current_font,
+                            component,
+                            current_underlined,
+                            current_strikethrough,
+                            current_color,
+                        )
                         # 最后一位中断换行，正常向后渲染
                         if line_num == (len(component_multiline) - 1):
-                            current_length = pic_draw.textlength(
+                            # 计算当前渲染部分的长度
+                            current_length = pic_drawer.textlength(
                                 component_multiline[line_num], current_font
                             )
                             current_x += current_length
@@ -258,10 +276,20 @@ class JEMSSPlugin(Star):
                         current_y = current_y + 30
                         current_x = initial_position[0]
                 else:
-                    pic_draw.text(
+                    pic_drawer.text(
                         (current_x, current_y), component, current_color, current_font
                     )
-                    current_length = pic_draw.textlength(component, current_font)
+                    self._set_motd_line(
+                        pic_drawer,
+                        (current_x, current_y),
+                        current_font,
+                        component,
+                        current_underlined,
+                        current_strikethrough,
+                        current_color,
+                    )
+                    # 计算当前渲染部分的长度
+                    current_length = pic_drawer.textlength(component, current_font)
                     current_x += current_length
             # 处理颜色符号
             elif isinstance(component, MinecraftColor):
@@ -278,6 +306,10 @@ class JEMSSPlugin(Star):
                     current_bold = True
                 elif component == Formatting.ITALIC:
                     current_italic = True
+                elif component == Formatting.UNDERLINED:
+                    current_underlined = True
+                elif component == Formatting.STRIKETHROUGH:
+                    current_strikethrough = True
                 elif component == Formatting.RESET:
                     current_color = COLORS[MinecraftColor.WHITE]["rgb"]
                     current_bold = False
@@ -301,8 +333,8 @@ class JEMSSPlugin(Star):
 
         return str(pic_temp_path)
 
-    # 获取italic与bold对应的字体
     def _get_motd_font(self, bold_status: bool, italic_status: bool):
+        """获取italic与bold对应的字体"""
         if bold_status and not italic_status:
             return self.font_motd_bold
         elif not bold_status and italic_status:
@@ -311,6 +343,36 @@ class JEMSSPlugin(Star):
             return self.font_motd_bold_italic
         else:
             return self.font_motd_regular
+
+    def _set_motd_line(
+        self,
+        pic_drawer: ImageDraw.ImageDraw,
+        position: tuple,
+        font: ImageFont.FreeTypeFont,
+        component: str,
+        underlined_status: bool,
+        strikethrough_status: bool,
+        color: tuple[int, int, int],
+    ):
+        """实现下划线与删除线的渲染"""
+        box = pic_drawer.textbbox(position, component, font)
+        ascent, descent = font.getmetrics()
+        baseline = position[1] + ascent
+
+        line_width = 3
+        if underlined_status:
+            # 此处将下划线定位于基线处
+            underline_y = baseline
+            underline_position = [(box[0], underline_y), (box[2], underline_y)]
+            pic_drawer.line(underline_position, color, line_width)
+        if strikethrough_status:
+            # 此处将删除线定位于Ascent * 0.4处
+            strikethrough_y = baseline - ascent * 0.4
+            strikethrough_position = [
+                (box[0], strikethrough_y),
+                (box[2], strikethrough_y),
+            ]
+            pic_drawer.line(strikethrough_position, color, line_width)
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""

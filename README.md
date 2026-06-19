@@ -5,7 +5,7 @@
 
 ## 特别感谢
 
-感谢 [mctext](https://github.com/Hexze/mctext) 提供的Minecraft字体文件
+感谢 [mctext](https://github.com/Hexze/mctext) 提供的Minecraft字体文件  
 感谢 [mcstatus](https://github.com/py-mine/mcstatus) 提供的Minecraft服务器查询与解析实现
 
 ---
