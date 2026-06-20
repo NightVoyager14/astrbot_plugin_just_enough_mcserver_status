@@ -17,13 +17,16 @@ from astrbot.api.star import Context, Star
 from astrbot.core.utils import astrbot_path
 
 from .motdinfo import COLORS, FORMATS, Formatting, MinecraftColor
+from .tools import JEMSSTool
 
 
 class JEMSSPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
-        # 获取基本路径
         # fmt: off
+        # 注册插件
+        self.context.add_llm_tools(JEMSSTool())
+        # 获取基本路径
         self.plugin_path = (
             Path(astrbot_path.get_astrbot_plugin_path())
             / "astrbot_plugin_just_enough_mcserver_status"
@@ -184,6 +187,9 @@ class JEMSSPlugin(Star):
         """查询Minecraft服务器有关信息"""
         pass
 
+    """
+    TODO:什么时候把基岩版的查询加上
+    """
     @jeping.command("status")
     async def get_status(
         self,
