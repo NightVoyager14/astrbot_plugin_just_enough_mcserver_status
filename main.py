@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import io
+import random
 from datetime import datetime
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from mcstatus import JavaServer
 from mcstatus.responses.bedrock import BedrockStatusResponse
 from mcstatus.responses.java import JavaStatusResponse
 from PIL import Image, ImageDraw, ImageFont
+from tomlkit import dump, exceptions, load
 
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
@@ -29,6 +31,9 @@ class JEMSSPlugin(Star):
         self.temp_path = Path(astrbot_path.get_astrbot_temp_path())
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
+        # 加载配置
+        self.config_path = self.plugin_path / "config.toml"
+        self.config = self._load_config()
         # 加载字体资源
         self.font_title = ImageFont.truetype(
             self.plugin_path / "fonts/minecraft.ttf", size=50
@@ -74,14 +79,75 @@ class JEMSSPlugin(Star):
             .resize((128, 128))
             .convert("RGBA")
         )
+        # 加载其他资源
+        with open(self.plugin_path / "assets/splashes.txt", encoding="utf-8") as splashes_file:
+            self.splashes = splashes_file.readlines()
         # fmt: on
+
+    """
+    TODO:添加config的校验与合并
+    """
+    def _load_config(self):
+        default_config = {
+            "ping_thresholds": {
+                "excellent": 50,
+                "good": 100,
+                "medium": 200,
+                "bad": 500,
+            }
+        }
+        # 处理当文件不存在时的情况
+        if not self.config_path.exists():
+            logger.warning("Cannot get config file")
+            logger.warning("Create a new config file")
+            with open(self.config_path, mode="w", encoding="utf-8") as config_file:
+                dump(default_config, config_file)
+            return default_config
+        # 捕获解析错误
+        try:
+            with open(self.config_path, mode="rb") as config_file:
+                user_config = load(config_file)
+            logger.info(f"{user_config}")
+            verified_config = self._verify_config(default_config, user_config)
+            return verified_config
+        except exceptions:
+            logger.warning("Config is broken!")
+            logger.warning("Please check you config")
+            return default_config
+
+    """
+    TODO:这里是硬编码判断，或许以后能优化一下
+    """
+    def _verify_config(self, base_config, user_config):
+        verified_config ={}
+        if "ping_thresholds" in user_config:
+            verified_config["ping_thresholds"] = {}
+            for item in base_config["ping_thresholds"]:
+                if item in user_config["ping_thresholds"]:
+                    if isinstance(user_config["ping_thresholds"][item], int) or isinstance(user_config["ping_thresholds"][item], float):
+                        verified_config["ping_thresholds"][item] = user_config["ping_thresholds"][item]
+                    else:
+                        logger.warning(f"Config item ping_thresholds.{item} have wrong content: {user_config['ping_thresholds'][item]}")
+                        logger.warning("Use default config to override this item")
+                        verified_config["ping_thresholds"][item] = base_config["ping_thresholds"][item]
+                else:
+                    logger.warning(f"Config dose not have item: ping_thresholds.{item}")
+                    logger.warning("Use default config to override this item")
+                    verified_config["ping_thresholds"][item] = base_config["ping_thresholds"][item]
+        else:
+            logger.warning("Config dose not have item: ping_thresholds")
+            logger.warning("Use default config to override this item")
+            verified_config["ping_thresholds"] = base_config["ping_thresholds"]
+
+        return verified_config
+
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
 
     @filter.command_group("jemss")
     def jemss(self):
-        """"""
+        """JEMMS的相关指令"""
         pass
 
     @jemss.command("version")
@@ -99,9 +165,16 @@ class JEMSSPlugin(Star):
             "/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称] :获取JE服务器状态"
         )
 
+    @jemss.command("splash")
+    async def splash(self, event: AstrMessageEvent):
+        """来抽一个spalsh吧"""
+        splash_num = random.randint(1, len(self.splashes))
+        random_spalsh = self.splashes[splash_num - 1].strip("\n")
+        yield event.plain_result(f"{random_spalsh}")
+
     @filter.permission_type(filter.PermissionType.ADMIN)
-    @filter.command("admin")
-    async def admin_respon(self, event: AstrMessageEvent):
+    @jemss.command("admin")
+    async def admin(self, event: AstrMessageEvent):
         """像admin一样回答"""
         user_name = event.get_sender_name()
         yield event.plain_result(f"WOW,{user_name}管理员来了呢！")
@@ -143,6 +216,9 @@ class JEMSSPlugin(Star):
             f"服务器版本:{server_status.version}游玩人数:{server_status.players.online}/{server_status.players.max},延迟:{server_status.latency}ms,DNS:{server.address.host}:{server.address.port},motd:{server_status.motd.to_plain()}"
         )
 
+    """
+    TODO:这里功能的实现太集中了，要分割成多个函数
+    """
     def _server_info_render(
         self,
         server: JavaServer,
@@ -182,26 +258,23 @@ class JEMSSPlugin(Star):
             )
 
         # 添加延迟显示
-        """
-        WIP:之后这里可以添加用户配置以自定义分段显示
-        """
-        if status.latency <= 50:
+        if status.latency <= self.config["ping_thresholds"]["excellent"]:
             pic.paste(
                 self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
             )
-        elif status.latency <= 100:
+        elif status.latency <= self.config["ping_thresholds"]["good"]:
             pic.paste(
                 self.ping_icons["ping4"], (1200, 10), mask=self.ping_icons["ping4"]
             )
-        elif status.latency <= 200:
+        elif status.latency <= self.config["ping_thresholds"]["medium"]:
             pic.paste(
                 self.ping_icons["ping3"], (1200, 10), mask=self.ping_icons["ping3"]
             )
-        elif status.latency <= 500:
+        elif status.latency <= self.config["ping_thresholds"]["bad"]:
             pic.paste(
                 self.ping_icons["ping2"], (1200, 10), mask=self.ping_icons["ping2"]
             )
-        elif status.latency > 500:
+        elif status.latency > self.config["ping_thresholds"]["bad"]:
             pic.paste(
                 self.ping_icons["ping1"], (1200, 10), mask=self.ping_icons["ping1"]
             )
@@ -220,7 +293,7 @@ class JEMSSPlugin(Star):
         # 解析motd
         motd = status.motd.parsed
         motd_fixed = []
-        # 临时修复mcstatus的JE与BE的MOTD解析BUG
+        # HACK:临时修复mcstatus的JE与BE的MOTD解析BUG
         for motd_item in motd:
             if motd_item == MinecraftColor.MATERIAL_COPPER:
                 motd_fixed.append(Formatting.UNDERLINED)
