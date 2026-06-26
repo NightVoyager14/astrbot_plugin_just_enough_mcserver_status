@@ -1,6 +1,6 @@
 import base64
-import hashlib
 import io
+import os
 import random
 from datetime import datetime
 from pathlib import Path
@@ -11,12 +11,13 @@ from mcstatus.responses.java import JavaStatusResponse
 from PIL import Image, ImageDraw, ImageFont
 from tomlkit import dump, exceptions, load
 
+import astrbot.api.message_components as Comp
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
 from astrbot.api.star import Context, Star
 from astrbot.core.utils import astrbot_path
 
-from .motdinfo import COLORS, FORMATS, Formatting, MinecraftColor
+from .motdinfo import JAVA_COLORS, JAVA_FORMATS, JavaFormatting, JavaMinecraftColor
 from .tools import JEMSSTool
 
 
@@ -26,12 +27,13 @@ class JEMSSPlugin(Star):
         # fmt: off
         # 注册插件
         self.context.add_llm_tools(JEMSSTool())
-        # 获取基本路径
+        # 获取并检查基本路径
         self.plugin_path = (
             Path(astrbot_path.get_astrbot_plugin_path())
             / "astrbot_plugin_just_enough_mcserver_status"
         )
-        self.temp_path = Path(astrbot_path.get_astrbot_temp_path())
+        self.temp_path = Path(astrbot_path.get_astrbot_temp_path()) / "JEMSSPlugin_temp_pic"
+        self.temp_path.mkdir(exist_ok=True)
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
         # 加载配置
@@ -87,9 +89,6 @@ class JEMSSPlugin(Star):
             self.splashes = splashes_file.readlines()
         # fmt: on
 
-    """
-    TODO:添加config的校验与合并
-    """
     def _load_config(self):
         default_config = {
             "ping_thresholds": {
@@ -113,7 +112,7 @@ class JEMSSPlugin(Star):
             logger.info(f"{user_config}")
             verified_config = self._verify_config(default_config, user_config)
             return verified_config
-        except exceptions:
+        except exceptions.TOMLKitError:
             logger.warning("Config is broken!")
             logger.warning("Please check you config")
             return default_config
@@ -121,29 +120,39 @@ class JEMSSPlugin(Star):
     """
     TODO:这里是硬编码判断，或许以后能优化一下
     """
+
     def _verify_config(self, base_config, user_config):
-        verified_config ={}
+        verified_config = {}
         if "ping_thresholds" in user_config:
             verified_config["ping_thresholds"] = {}
             for item in base_config["ping_thresholds"]:
                 if item in user_config["ping_thresholds"]:
-                    if isinstance(user_config["ping_thresholds"][item], int) or isinstance(user_config["ping_thresholds"][item], float):
-                        verified_config["ping_thresholds"][item] = user_config["ping_thresholds"][item]
+                    if isinstance(
+                        user_config["ping_thresholds"][item], int
+                    ) or isinstance(user_config["ping_thresholds"][item], float):
+                        verified_config["ping_thresholds"][item] = user_config[
+                            "ping_thresholds"
+                        ][item]
                     else:
-                        logger.warning(f"Config item ping_thresholds.{item} have wrong content: {user_config['ping_thresholds'][item]}")
+                        logger.warning(
+                            f"Config item ping_thresholds.{item} have wrong content: {user_config['ping_thresholds'][item]}"
+                        )
                         logger.warning("Use default config to override this item")
-                        verified_config["ping_thresholds"][item] = base_config["ping_thresholds"][item]
+                        verified_config["ping_thresholds"][item] = base_config[
+                            "ping_thresholds"
+                        ][item]
                 else:
                     logger.warning(f"Config dose not have item: ping_thresholds.{item}")
                     logger.warning("Use default config to override this item")
-                    verified_config["ping_thresholds"][item] = base_config["ping_thresholds"][item]
+                    verified_config["ping_thresholds"][item] = base_config[
+                        "ping_thresholds"
+                    ][item]
         else:
             logger.warning("Config dose not have item: ping_thresholds")
             logger.warning("Use default config to override this item")
             verified_config["ping_thresholds"] = base_config["ping_thresholds"]
 
         return verified_config
-
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
@@ -165,15 +174,31 @@ class JEMSSPlugin(Star):
     async def help(self, event: AstrMessageEvent):
         """JEMSS的有关帮助"""
         yield event.plain_result(
-            "/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称] :获取JE服务器状态"
+            "JEMSS 帮助信息\n"
+            "```text\n"
+            "├── /jeping —— 服务器状态查询\n"
+            "│   └── status <服务器地址[:服务器端口]> [名称]\n"
+            "│        └── 获取 Java 版状态信息\n"
+            "\n"
+            "└── /jemss —— 插件工具集\n"
+            "    ├── version\n"
+            "    │    └── 查看插件版本\n"
+            "    ├── splash\n"
+            "    │    └── 随机获取启动标语\n"
+            "    ├── admin (仅管理员)\n"
+            "    │    └── 管理员测试指令\n"
+            "    └── help\n"
+            "         └── 显示此帮助信息\n"
+            "```\n"
+            "示例：`/jeping status 127.0.0.1:25565 LocalServer`"
         )
 
     @jemss.command("splash")
     async def splash(self, event: AstrMessageEvent):
         """来抽一个spalsh吧"""
         splash_num = random.randint(1, len(self.splashes))
-        random_spalsh = self.splashes[splash_num - 1].strip("\n")
-        yield event.plain_result(f"{random_spalsh}")
+        random_splash = self.splashes[splash_num - 1].strip("\n")
+        yield event.plain_result(f"{random_splash}")
 
     @filter.permission_type(filter.PermissionType.ADMIN)
     @jemss.command("admin")
@@ -183,13 +208,14 @@ class JEMSSPlugin(Star):
         yield event.plain_result(f"WOW,{user_name}管理员来了呢！")
 
     @filter.command_group("jeping")
-    async def jeping(self):
+    def jeping(self):
         """查询Minecraft服务器有关信息"""
         pass
 
     """
     TODO:什么时候把基岩版的查询加上
     """
+
     @jeping.command("status")
     async def get_status(
         self,
@@ -217,14 +243,24 @@ class JEMSSPlugin(Star):
         info_pic = self._server_info_render(server, server_status, event, server_name)
 
         # 消息输出信息图片和文字
-        yield event.image_result(info_pic)
-        yield event.plain_result(
-            f"服务器版本:{server_status.version}游玩人数:{server_status.players.online}/{server_status.players.max},延迟:{server_status.latency}ms,DNS:{server.address.host}:{server.address.port},motd:{server_status.motd.to_plain()}"
-        )
+        message_chain = [
+            Comp.Image.fromFileSystem(info_pic),  # 从本地文件目录发送图片
+            Comp.Plain(
+                f"• 服务器版本:{server_status.version.name}(协议版本:{server_status.version.protocol})\n"
+                f"• 游玩人数:{server_status.players.online}/{server_status.players.max}\n"
+                f"• 延迟:{server_status.latency}ms\n"
+                f"• DNS(RSV)解析:{server.address.host}:{server.address.port}\n"
+                f"• motd:\n"
+                f"{server_status.motd.to_plain()}\n"
+            ),
+        ]
+        yield event.chain_result(message_chain)
 
     """
     TODO:这里功能的实现太集中了，要分割成多个函数
+    TODO:渐变色一类的webcolor支持
     """
+
     def _server_info_render(
         self,
         server: JavaServer,
@@ -298,22 +334,12 @@ class JEMSSPlugin(Star):
 
         # 解析motd
         motd = status.motd.parsed
-        motd_fixed = []
-        # HACK:临时修复mcstatus的JE与BE的MOTD解析BUG
-        for motd_item in motd:
-            if motd_item == MinecraftColor.MATERIAL_COPPER:
-                motd_fixed.append(Formatting.UNDERLINED)
-            elif motd_item == MinecraftColor.MATERIAL_REDSTONE:
-                motd_fixed.append(Formatting.STRIKETHROUGH)
-            else:
-                motd_fixed.append(motd_item)
-        logger.debug(motd_fixed)
 
         # 设置状态机的状态
         initial_position = (160, 60)
         current_x, current_y = initial_position
         current_length = 0
-        current_color = COLORS[MinecraftColor.WHITE]["rgb"]
+        current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]
         current_bold = False
         current_italic = False
         current_strikethrough = False
@@ -321,7 +347,7 @@ class JEMSSPlugin(Star):
         current_obfuscated = False
         current_font = self.font_motd_regular
         # 开始渲染
-        for component in motd_fixed:
+        for component in motd:
             logger.debug(f"{component} | {isinstance(component, str)}")
             if isinstance(component, str):
                 current_font = self._get_motd_font(current_bold, current_italic)
@@ -339,7 +365,7 @@ class JEMSSPlugin(Star):
                             pic_drawer,
                             (current_x, current_y),
                             current_font,
-                            component,
+                            component_multiline[line_num],
                             current_underlined,
                             current_strikethrough,
                             current_color,
@@ -371,8 +397,8 @@ class JEMSSPlugin(Star):
                     current_length = pic_drawer.textlength(component, current_font)
                     current_x += current_length
             # 处理颜色符号
-            elif isinstance(component, MinecraftColor):
-                current_color = COLORS[component]["rgb"]
+            elif isinstance(component, JavaMinecraftColor):
+                current_color = JAVA_COLORS[component]["rgb"]
                 # JE特性：格式代码仅仅在颜色代码前生效
                 current_bold = False
                 current_italic = False
@@ -380,32 +406,41 @@ class JEMSSPlugin(Star):
                 current_underlined = False
                 current_obfuscated = False
             # 处理格式符号
-            elif isinstance(component, Formatting):
-                if component == Formatting.BOLD:
+            elif isinstance(component, JavaFormatting):
+                if component == JavaFormatting.BOLD:
                     current_bold = True
-                elif component == Formatting.ITALIC:
+                elif component == JavaFormatting.ITALIC:
                     current_italic = True
-                elif component == Formatting.UNDERLINED:
+                elif component == JavaFormatting.UNDERLINED:
                     current_underlined = True
-                elif component == Formatting.STRIKETHROUGH:
+                elif component == JavaFormatting.STRIKETHROUGH:
                     current_strikethrough = True
-                elif component == Formatting.RESET:
-                    current_color = COLORS[MinecraftColor.WHITE]["rgb"]
+                elif component == JavaFormatting.RESET:
+                    current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]
                     current_bold = False
                     current_italic = False
                     current_strikethrough = False
                     current_underlined = False
                     current_obfuscated = False
 
+        # TODO:优化缓存
         # 设置缓存文件路径
-        pic_hash = hashlib.md5(pic.tobytes())
-        logger.info(pic_hash.hexdigest()[:5])
+        session_id = event.get_session_id()
+        # 删除同对话的之前缓存
+        old_files = self.temp_path.glob(f"JEMSSPlugin_temp_img_{session_id}*.png")
+        for old_file in old_files:
+            try:
+                os.remove(old_file)
+            except Exception as e:
+                logger.warning(f"Cannot remove tempfile: {old_file}")
+                logger.warning(f"Reason: {e}")
+                logger.warning("You can delete it by yourself.")
         logger.info(datetime.now())
         pic_temp_path = (
             self.temp_path
-            / f"JEMSSPlugin_temp_img_{datetime.now().strftime('%y%m%d%H%M%S')}_{event.get_session_id()}_{pic_hash.hexdigest()}.png"
+            / f"JEMSSPlugin_temp_img_{session_id}_{datetime.now().strftime('%y%m%d%H%M%S%f')}.png"
         )
-        logger.info(pic_temp_path)
+        logger.info(f"Temp server info picture path: {pic_temp_path}")
 
         # 保存文件
         pic.save(pic_temp_path, "PNG")

@@ -1,6 +1,11 @@
 from typing import TypedDict
 
-from mcstatus.motd.components import Formatting, MinecraftColor
+from mcstatus.motd.components import (
+    BedrockFormatting,
+    BedrockMinecraftColor,
+    JavaFormatting,
+    JavaMinecraftColor,
+)
 
 
 # fmt: off
@@ -26,9 +31,8 @@ class FormatInfo(TypedDict):
     code: str                # Minecraft 格式代码（含 § 前缀）
 
 
-# 颜色代码字典，使用 MinecraftColor 枚举作为键
-COLORS: dict[MinecraftColor, ColorInfo] = {
-    MinecraftColor.BLACK: {
+JAVA_COLORS: dict[JavaMinecraftColor, ColorInfo] = {
+    JavaMinecraftColor.BLACK: {
         "name_en": "black",
         "hex": "#000000",
         "dark_hex": "#000000",
@@ -39,7 +43,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§0",
     },
-    MinecraftColor.DARK_BLUE: {
+    JavaMinecraftColor.DARK_BLUE: {
         "name_en": "dark_blue",
         "hex": "#0000AA",
         "dark_hex": "#00002A",
@@ -50,7 +54,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§1",
     },
-    MinecraftColor.DARK_GREEN: {
+    JavaMinecraftColor.DARK_GREEN: {
         "name_en": "dark_green",
         "hex": "#00AA00",
         "dark_hex": "#002A00",
@@ -61,7 +65,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§2",
     },
-    MinecraftColor.DARK_AQUA: {
+    JavaMinecraftColor.DARK_AQUA: {
         "name_en": "dark_aqua",
         "hex": "#00AAAA",
         "dark_hex": "#002A2A",
@@ -72,7 +76,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§3",
     },
-    MinecraftColor.DARK_RED: {
+    JavaMinecraftColor.DARK_RED: {
         "name_en": "dark_red",
         "hex": "#AA0000",
         "dark_hex": "#2A0000",
@@ -83,7 +87,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§4",
     },
-    MinecraftColor.DARK_PURPLE: {
+    JavaMinecraftColor.DARK_PURPLE: {
         "name_en": "dark_purple",
         "hex": "#AA00AA",
         "dark_hex": "#2A002A",
@@ -94,7 +98,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§5",
     },
-    MinecraftColor.GOLD: {
+    JavaMinecraftColor.GOLD: {
         "name_en": "gold",
         "hex": "#FFAA00",
         "dark_hex": "#402A00",
@@ -105,7 +109,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§6",
     },
-    MinecraftColor.GRAY: {
+    JavaMinecraftColor.GRAY: {
         "name_en": "gray",
         "hex": "#AAAAAA",
         "dark_hex": "#2A2A2A",
@@ -116,7 +120,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§7",
     },
-    MinecraftColor.DARK_GRAY: {
+    JavaMinecraftColor.DARK_GRAY: {
         "name_en": "dark_gray",
         "hex": "#555555",
         "dark_hex": "#151515",
@@ -127,7 +131,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§8",
     },
-    MinecraftColor.BLUE: {
+    JavaMinecraftColor.BLUE: {
         "name_en": "blue",
         "hex": "#5555FF",
         "dark_hex": "#15153F",
@@ -138,7 +142,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§9",
     },
-    MinecraftColor.GREEN: {
+    JavaMinecraftColor.GREEN: {
         "name_en": "green",
         "hex": "#55FF55",
         "dark_hex": "#153F15",
@@ -149,7 +153,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§a",
     },
-    MinecraftColor.AQUA: {
+    JavaMinecraftColor.AQUA: {
         "name_en": "aqua",
         "hex": "#55FFFF",
         "dark_hex": "#153F3F",
@@ -160,7 +164,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§b",
     },
-    MinecraftColor.RED: {
+    JavaMinecraftColor.RED: {
         "name_en": "red",
         "hex": "#FF5555",
         "dark_hex": "#3F1515",
@@ -171,7 +175,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§c",
     },
-    MinecraftColor.LIGHT_PURPLE: {
+    JavaMinecraftColor.LIGHT_PURPLE: {
         "name_en": "light_purple",
         "hex": "#FF55FF",
         "dark_hex": "#3F153F",
@@ -182,7 +186,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§d",
     },
-    MinecraftColor.YELLOW: {
+    JavaMinecraftColor.YELLOW: {
         "name_en": "yellow",
         "hex": "#FFFF55",
         "dark_hex": "#3F3F15",
@@ -193,7 +197,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§e",
     },
-    MinecraftColor.WHITE: {
+    JavaMinecraftColor.WHITE: {
         "name_en": "white",
         "hex": "#FFFFFF",
         "dark_hex": "#3F3F3F",
@@ -204,7 +208,186 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": True,
         "code": "§f",
     },
-    MinecraftColor.MINECOIN_GOLD: {
+}
+
+BEDROCK_COLORS: dict[BedrockMinecraftColor, ColorInfo] = {
+    BedrockMinecraftColor.BLACK: {
+        "name_en": "black",
+        "hex": "#000000",
+        "dark_hex": "#000000",
+        "rgb": (0, 0, 0),
+        "dark_rgb": (0, 0, 0),
+        "ansi": "\x1b[0;30m",
+        "bedrock": True,
+        "java": True,
+        "code": "§0",
+    },
+    BedrockMinecraftColor.DARK_BLUE: {
+        "name_en": "dark_blue",
+        "hex": "#0000AA",
+        "dark_hex": "#00002A",
+        "rgb": (0, 0, 170),
+        "dark_rgb": (0, 0, 42),
+        "ansi": "\x1b[0;34m",
+        "bedrock": True,
+        "java": True,
+        "code": "§1",
+    },
+    BedrockMinecraftColor.DARK_GREEN: {
+        "name_en": "dark_green",
+        "hex": "#00AA00",
+        "dark_hex": "#002A00",
+        "rgb": (0, 170, 0),
+        "dark_rgb": (0, 42, 0),
+        "ansi": "\x1b[0;32m",
+        "bedrock": True,
+        "java": True,
+        "code": "§2",
+    },
+    BedrockMinecraftColor.DARK_AQUA: {
+        "name_en": "dark_aqua",
+        "hex": "#00AAAA",
+        "dark_hex": "#002A2A",
+        "rgb": (0, 170, 170),
+        "dark_rgb": (0, 42, 42),
+        "ansi": "\x1b[0;36m",
+        "bedrock": True,
+        "java": True,
+        "code": "§3",
+    },
+    BedrockMinecraftColor.DARK_RED: {
+        "name_en": "dark_red",
+        "hex": "#AA0000",
+        "dark_hex": "#2A0000",
+        "rgb": (170, 0, 0),
+        "dark_rgb": (42, 0, 0),
+        "ansi": "\x1b[0;31m",
+        "bedrock": True,
+        "java": True,
+        "code": "§4",
+    },
+    BedrockMinecraftColor.DARK_PURPLE: {
+        "name_en": "dark_purple",
+        "hex": "#AA00AA",
+        "dark_hex": "#2A002A",
+        "rgb": (170, 0, 170),
+        "dark_rgb": (42, 0, 42),
+        "ansi": "\x1b[0;35m",
+        "bedrock": True,
+        "java": True,
+        "code": "§5",
+    },
+    BedrockMinecraftColor.GOLD: {
+        "name_en": "gold",
+        "hex": "#FFAA00",
+        "dark_hex": "#402A00",
+        "rgb": (255, 170, 0),
+        "dark_rgb": (64, 42, 0),
+        "ansi": "\x1b[0;33m",
+        "bedrock": True,
+        "java": True,
+        "code": "§6",
+    },
+    BedrockMinecraftColor.GRAY: {
+        "name_en": "gray",
+        "hex": "#AAAAAA",
+        "dark_hex": "#2A2A2A",
+        "rgb": (170, 170, 170),
+        "dark_rgb": (42, 42, 42),
+        "ansi": "\x1b[0;37m",
+        "bedrock": True,
+        "java": True,
+        "code": "§7",
+    },
+    BedrockMinecraftColor.DARK_GRAY: {
+        "name_en": "dark_gray",
+        "hex": "#555555",
+        "dark_hex": "#151515",
+        "rgb": (85, 85, 85),
+        "dark_rgb": (21, 21, 21),
+        "ansi": "\x1b[0;90m",
+        "bedrock": True,
+        "java": True,
+        "code": "§8",
+    },
+    BedrockMinecraftColor.BLUE: {
+        "name_en": "blue",
+        "hex": "#5555FF",
+        "dark_hex": "#15153F",
+        "rgb": (85, 85, 255),
+        "dark_rgb": (21, 21, 63),
+        "ansi": "\x1b[0;94m",
+        "bedrock": True,
+        "java": True,
+        "code": "§9",
+    },
+    BedrockMinecraftColor.GREEN: {
+        "name_en": "green",
+        "hex": "#55FF55",
+        "dark_hex": "#153F15",
+        "rgb": (85, 255, 85),
+        "dark_rgb": (21, 63, 21),
+        "ansi": "\x1b[0;92m",
+        "bedrock": True,
+        "java": True,
+        "code": "§a",
+    },
+    BedrockMinecraftColor.AQUA: {
+        "name_en": "aqua",
+        "hex": "#55FFFF",
+        "dark_hex": "#153F3F",
+        "rgb": (85, 255, 255),
+        "dark_rgb": (21, 63, 63),
+        "ansi": "\x1b[0;96m",
+        "bedrock": True,
+        "java": True,
+        "code": "§b",
+    },
+    BedrockMinecraftColor.RED: {
+        "name_en": "red",
+        "hex": "#FF5555",
+        "dark_hex": "#3F1515",
+        "rgb": (255, 85, 85),
+        "dark_rgb": (63, 21, 21),
+        "ansi": "\x1b[0;91m",
+        "bedrock": True,
+        "java": True,
+        "code": "§c",
+    },
+    BedrockMinecraftColor.LIGHT_PURPLE: {
+        "name_en": "light_purple",
+        "hex": "#FF55FF",
+        "dark_hex": "#3F153F",
+        "rgb": (255, 85, 255),
+        "dark_rgb": (63, 21, 63),
+        "ansi": "\x1b[0;95m",
+        "bedrock": True,
+        "java": True,
+        "code": "§d",
+    },
+    BedrockMinecraftColor.YELLOW: {
+        "name_en": "yellow",
+        "hex": "#FFFF55",
+        "dark_hex": "#3F3F15",
+        "rgb": (255, 255, 85),
+        "dark_rgb": (63, 63, 21),
+        "ansi": "\x1b[0;93m",
+        "bedrock": True,
+        "java": True,
+        "code": "§e",
+    },
+    BedrockMinecraftColor.WHITE: {
+        "name_en": "white",
+        "hex": "#FFFFFF",
+        "dark_hex": "#3F3F3F",
+        "rgb": (255, 255, 255),
+        "dark_rgb": (63, 63, 63),
+        "ansi": "\x1b[0;97m",
+        "bedrock": True,
+        "java": True,
+        "code": "§f",
+    },
+    BedrockMinecraftColor.MINECOIN_GOLD: {
         "name_en": "minecoin_gold",
         "hex": "#DDD605",
         "dark_hex": "#373501",
@@ -215,7 +398,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§g",
     },
-    MinecraftColor.MATERIAL_QUARTZ: {
+    BedrockMinecraftColor.MATERIAL_QUARTZ: {
         "name_en": "material_quartz",
         "hex": "#E3D4D1",
         "dark_hex": "#383534",
@@ -226,7 +409,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§h",
     },
-    MinecraftColor.MATERIAL_IRON: {
+    BedrockMinecraftColor.MATERIAL_IRON: {
         "name_en": "material_iron",
         "hex": "#CECACA",
         "dark_hex": "#333232",
@@ -237,7 +420,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§i",
     },
-    MinecraftColor.MATERIAL_NETHERITE: {
+    BedrockMinecraftColor.MATERIAL_NETHERITE: {
         "name_en": "material_netherite",
         "hex": "#443A3B",
         "dark_hex": "#110E0E",
@@ -248,7 +431,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§j",
     },
-    MinecraftColor.MATERIAL_REDSTONE: {
+    BedrockMinecraftColor.MATERIAL_REDSTONE: {
         "name_en": "material_redstone",
         "hex": "#971607",
         "dark_hex": "#250501",
@@ -259,7 +442,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§m",
     },
-    MinecraftColor.MATERIAL_COPPER: {
+    BedrockMinecraftColor.MATERIAL_COPPER: {
         "name_en": "material_copper",
         "hex": "#B4684D",
         "dark_hex": "#2D1A13",
@@ -270,7 +453,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§n",
     },
-    MinecraftColor.MATERIAL_GOLD: {
+    BedrockMinecraftColor.MATERIAL_GOLD: {
         "name_en": "material_gold",
         "hex": "#DEB12D",
         "dark_hex": "#372C0B",
@@ -281,7 +464,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§p",
     },
-    MinecraftColor.MATERIAL_EMERALD: {
+    BedrockMinecraftColor.MATERIAL_EMERALD: {
         "name_en": "material_emerald",
         "hex": "#11A036",
         "dark_hex": "#04280D",
@@ -292,7 +475,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§q",
     },
-    MinecraftColor.MATERIAL_DIAMOND: {
+    BedrockMinecraftColor.MATERIAL_DIAMOND: {
         "name_en": "material_diamond",
         "hex": "#2CBAA8",
         "dark_hex": "#0B2E2A",
@@ -303,7 +486,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§s",
     },
-    MinecraftColor.MATERIAL_LAPIS: {
+    BedrockMinecraftColor.MATERIAL_LAPIS: {
         "name_en": "material_lapis",
         "hex": "#21497B",
         "dark_hex": "#08121E",
@@ -314,7 +497,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§t",
     },
-    MinecraftColor.MATERIAL_AMETHYST: {
+    BedrockMinecraftColor.MATERIAL_AMETHYST: {
         "name_en": "material_amethyst",
         "hex": "#9A5CC6",
         "dark_hex": "#261731",
@@ -325,7 +508,7 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
         "java": False,
         "code": "§u",
     },
-    MinecraftColor.MATERIAL_RESIN: {
+    BedrockMinecraftColor.MATERIAL_RESIN: {
         "name_en": "material_resin",
         "hex": "#EB7114",
         "dark_hex": "#3B1D05",
@@ -338,43 +521,74 @@ COLORS: dict[MinecraftColor, ColorInfo] = {
     },
 }
 
-FORMATS: dict[Formatting, FormatInfo] = {
-    Formatting.BOLD: {
+JAVA_FORMATS: dict[JavaFormatting, FormatInfo] = {
+    JavaFormatting.BOLD: {
         "name_en": "bold",
         "ansi": "\x1b[1m",
         "bedrock": True,
         "java": True,
         "code": "§l",
     },
-    Formatting.ITALIC: {
+    JavaFormatting.ITALIC: {
         "name_en": "italic",
         "ansi": "\x1b[3m",
         "bedrock": True,
         "java": True,
         "code": "§o",
     },
-    Formatting.UNDERLINED: {
+    JavaFormatting.UNDERLINED: {
         "name_en": "underlined",
         "ansi": "\x1b[4m",
-        "bedrock": False,
+        "bedrock": False,   # 基岩版不支持
         "java": True,
         "code": "§n",
     },
-    Formatting.STRIKETHROUGH: {
+    JavaFormatting.STRIKETHROUGH: {
         "name_en": "strikethrough",
         "ansi": "\x1b[9m",
-        "bedrock": False,
+        "bedrock": False,   # 基岩版不支持
         "java": True,
         "code": "§m",
     },
-    Formatting.OBFUSCATED: {
+    JavaFormatting.OBFUSCATED: {
         "name_en": "obfuscated",
         "ansi": "\x1b[8m",
         "bedrock": True,
         "java": True,
         "code": "§k",
     },
-    Formatting.RESET: {
+    JavaFormatting.RESET: {
+        "name_en": "reset",
+        "ansi": "\x1b[0m",
+        "bedrock": True,
+        "java": True,
+        "code": "§r",
+    },
+}
+
+BEDROCK_FORMATS: dict[BedrockFormatting, FormatInfo] = {
+    BedrockFormatting.BOLD: {
+        "name_en": "bold",
+        "ansi": "\x1b[1m",
+        "bedrock": True,
+        "java": True,
+        "code": "§l",
+    },
+    BedrockFormatting.ITALIC: {
+        "name_en": "italic",
+        "ansi": "\x1b[3m",
+        "bedrock": True,
+        "java": True,
+        "code": "§o",
+    },
+    BedrockFormatting.OBFUSCATED: {
+        "name_en": "obfuscated",
+        "ansi": "\x1b[8m",
+        "bedrock": True,
+        "java": True,
+        "code": "§k",
+    },
+    BedrockFormatting.RESET: {
         "name_en": "reset",
         "ansi": "\x1b[0m",
         "bedrock": True,

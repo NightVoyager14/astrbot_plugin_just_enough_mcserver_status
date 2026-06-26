@@ -6,7 +6,10 @@
 [![version](https://img.shields.io/badge/JEMSS-v1.0.0-green)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status)
 [![AstrBot](https://img.shields.io/badge/AstrBot-Plugin-skyblue)](https://github.com/AstrBotDevs/AstrBot)
 
-*正在开发中 InDev*
+## 写在前面
+
+本插件*正在开发中 InDev*，功能尚不完善  
+如果有BUG或功能建议，欢迎提交issues
 
 ## 特别感谢
 
