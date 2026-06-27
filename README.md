@@ -26,7 +26,9 @@
 感谢 [mcstatus](https://github.com/py-mine/mcstatus) 提供的Minecraft服务器查询与解析实现
 
 <div align="center">
-私は高性能ですから！Minecraftの対応も、もちろんお手の物です！
+<img src="https://files.astrbot.app/watashiwa-koseino-desukara.gif" width="100"/>
+
+私は、高性能ですから！Minecraftの対応も、もちろんお手の物です！
 </div>
 
 ---
