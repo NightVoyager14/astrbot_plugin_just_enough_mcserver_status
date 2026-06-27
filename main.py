@@ -259,6 +259,7 @@ class JEMSSPlugin(Star):
     """
     TODO:这里功能的实现太集中了，要分割成多个函数
     TODO:渐变色一类的webcolor支持
+    TODO:随机代码支持
     """
 
     def _server_info_render(
