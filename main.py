@@ -22,6 +22,8 @@ from .tools import JEMSSTool
 
 
 class JEMSSPlugin(Star):
+    __version__ = "v1.0.0"
+
     def __init__(self, context: Context):
         super().__init__(context)
         # fmt: off
@@ -168,7 +170,7 @@ class JEMSSPlugin(Star):
         user_name = event.get_sender_name()
         message_chain = event.get_messages()
         logger.info(message_chain)
-        yield event.plain_result(f"Hello, {user_name}, JEMSS的版本为v1.0.0")
+        yield event.plain_result(f"Hello, {user_name}, JEMSS的版本为{self.__version__}")
 
     @jemss.command("help")
     async def help(self, event: AstrMessageEvent):
