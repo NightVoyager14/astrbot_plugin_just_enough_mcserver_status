@@ -1,4 +1,8 @@
-# Just Enough McServer Status
+
+<div align="center">
+    <img src="logo.png" width="100"/>
+    <h1>Just Enough McServer Status</h1>
+</div>
 
 [![License](https://img.shields.io/badge/License-AGPL_v3-orange.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![repo](https://img.shields.io/badge/github-repo-blue?logo=github)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status)
