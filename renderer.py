@@ -19,6 +19,7 @@ class Renderer:
     """实现MOTD的渲染逻辑"""
 
     def __init__(self, plugin_path: Path, config: dict, temp_path: Path):
+        # fmt: off
         self.config = config
         self.plugin_path = plugin_path
         self.temp_path = temp_path
@@ -67,6 +68,7 @@ class Renderer:
             .resize((128, 128))
             .convert("RGBA")
         )
+        # fmt:on
 
     """
     TODO:这里功能的实现太集中了，要分割成多个函数

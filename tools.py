@@ -1,3 +1,5 @@
+import json
+
 from mcstatus import JavaServer
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -64,7 +66,7 @@ class JEMSSTool(FunctionTool[AstrAgentContext]):
                         for mod in server_status.forge_data.mods
                     ],
                 }
-            return str(tool_result)
+            return json.dumps(tool_result, ensure_ascii=False, separators=(",", ":"))
         except Exception as e:
             logger.error(f"Tool Can't get server information {server_address}")
             logger.error(f"Tool Error info: {e}")

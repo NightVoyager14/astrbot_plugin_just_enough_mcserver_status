@@ -113,16 +113,20 @@ class JEMSSPlugin(Star):
 
     @filter.command_group("jemss")
     def jemss(self):
-        """JEMMS的相关指令"""
+        """JEMSS的相关指令"""
         pass
 
     @jemss.command("version")
     async def get_version(self, event: AstrMessageEvent):
         """获得JEMSS的版本"""
         user_name = event.get_sender_name()
-        message_chain = event.get_messages()
-        logger.info(message_chain)
-        yield event.plain_result(f"Hello, {user_name}, JEMSS的版本为{self.__version__}")
+
+        yield event.plain_result(
+            f"Hello {user_name}\n"
+            "Welcome to use AstrBot plugin Just Enough McServer Status\n"
+            f"Version: {self.__version__}\n"
+            "License: AGPL-3.0 license https://www.gnu.org/licenses/agpl-3.0"
+        )
 
     @jemss.command("help")
     async def help(self, event: AstrMessageEvent):
@@ -159,7 +163,7 @@ class JEMSSPlugin(Star):
     async def admin(self, event: AstrMessageEvent):
         """像admin一样回答"""
         user_name = event.get_sender_name()
-        yield event.plain_result(f"WOW,{user_name}管理员来了呢！")
+        yield event.plain_result(f"WOW, {user_name} 管理员来了呢！")
 
     @filter.command_group("jeping")
     def jeping(self):
@@ -194,21 +198,25 @@ class JEMSSPlugin(Star):
             return
 
         # 信息图片渲染
-        info_pic = self.renderer.server_info_render(server, server_status, event, server_name)
+        info_pic = self.renderer.server_info_render(
+            server, server_status, event, server_name
+        )
 
         # 消息输出信息图片和文字
-        message_chain = [
-            Comp.Image.fromFileSystem(info_pic),  # 从本地文件目录发送图片
-            Comp.Plain(
-                f"• 服务器版本:{server_status.version.name}(协议版本:{server_status.version.protocol})\n"
-                f"• 游玩人数:{server_status.players.online}/{server_status.players.max}\n"
-                f"• 延迟:{server_status.latency}ms\n"
-                f"• DNS(RSV)解析:{server.address.host}:{server.address.port}\n"
-                f"• motd:\n"
-                f"{server_status.motd.to_plain()}\n"
-            ),
-        ]
-        yield event.chain_result(message_chain)
+        # HACK: 这里为了排版增加了零宽字符\u200b，但这样对复制不友好，目前尚未想好解决办法
+        yield event.image_result(info_pic)
+        yield event.plain_result(
+            f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
+            f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
+            f"• 延迟: {round(server_status.latency, 2)}ms\n"
+            f"• DNS(RSV)解析: {server.address.host}:{server.address.port}\n"
+            f"• motd: \n"
+            "```text\n"
+            f"\u200b{server_status.motd.to_plain()}\u200b\n"
+            "```"
+        )
+
+        logger.info(server_status.motd.to_plain())
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
