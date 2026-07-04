@@ -17,7 +17,7 @@ from .tools import JEMSSTool
 
 
 class JEMSSPlugin(Star):
-    __version__ = "v1.0.0"
+    __version__ = "v1.0.1"
 
     def __init__(self, context: Context):
         super().__init__(context)
