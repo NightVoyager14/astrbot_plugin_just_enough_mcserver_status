@@ -1,0 +1,33 @@
+{
+  "ping_thresholds": {
+    "description": "延迟图标",
+    "type": "object",
+    "hint": "延迟图标展示的阈值设置",
+    "items": {
+      "excellent": {
+        "description": "Excellent",
+        "type": "int",
+        "hint": "延迟优秀",
+        "default": 50
+      },
+      "good": {
+        "description": "Good",
+        "type": "int",
+        "hint": "延迟较好",
+        "default": 100
+      },
+      "medium": {
+        "description": "Medium",
+        "type": "int",
+        "hint": "延迟一般",
+        "default": 200
+      },
+      "bad": {
+        "description": "Bad",
+        "type": "int",
+        "hint": "延迟较差",
+        "default": 500
+      }
+    }
+  }
+}

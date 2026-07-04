@@ -37,24 +37,15 @@
 
 ## 插件配置
 
-插件在 *未来* 计划开放更多可自定义选项并添加UI界面  
-目前位于插件根目录下`config.toml`下，且只有一个配置项`ping_thresholds`
-
-```toml
-# 设置ping不同图标的显示范围
-[ping_thresholds]
-excellent = 50    # 延迟优秀  <50ms
-good = 100        # 延迟较好  <100ms
-medium = 200      # 延迟一般  <200ms
-bad = 500         # 延迟较差  <500ms
-# 延迟糟糕 >500ms  
-```
+***(开发中)***
+插件在 *未来* 计划开放更多可自定义选项  
+目前插件可于AstrBotUI中配置，且只有一个配置项`ping_thresholds`
 
 ## 特别感谢
 
 - [mctext](https://github.com/Hexze/mctext) 提供的Minecraft字体文件  
 - [mcstatus](https://github.com/py-mine/mcstatus) 提供的Minecraft服务器查询与数据解析实现  
-- [AstrBot](https://github.com/AstrBotDevs/AstrBot) 优秀机器人框架  
+- [AstrBot](https://github.com/AstrBotDevs/AstrBot) 提供的优秀机器人框架  
 
 <div align="center">
 <img src="https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/images/watashiwa-koseino-desukara.gif" width="100"/>

@@ -4,14 +4,15 @@ from pathlib import Path
 from mcstatus import JavaServer
 from mcstatus.responses.bedrock import BedrockStatusResponse
 from mcstatus.responses.java import JavaStatusResponse
-from tomlkit import dump, exceptions, load
+from pydantic import ValidationError
 
 import astrbot.api.message_components as Comp
-from astrbot.api import logger
+from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
 from astrbot.api.star import Context, Star
 from astrbot.core.utils import astrbot_path
 
+from .config import PluginConfig
 from .renderer import Renderer
 from .tools import JEMSSTool
 
@@ -19,7 +20,7 @@ from .tools import JEMSSTool
 class JEMSSPlugin(Star):
     __version__ = "v1.0.1"
 
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
         # fmt: off
         # 注册插件
@@ -34,17 +35,7 @@ class JEMSSPlugin(Star):
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
         # 加载配置
-        self.config_path = self.plugin_path / "config.toml"
-        self.config = self._load_config()
-        # 加载渲染器
-        self.renderer = Renderer(self.plugin_path, self.config, self.temp_path)
-        # 加载其他资源
-        with open(self.plugin_path / "assets/splashes.txt", encoding="utf-8") as splashes_file:
-            self.splashes = splashes_file.readlines()
-        # fmt: on
-
-    def _load_config(self):
-        default_config = {
+        self.default_config = {
             "ping_thresholds": {
                 "excellent": 50,
                 "good": 100,
@@ -52,61 +43,22 @@ class JEMSSPlugin(Star):
                 "bad": 500,
             }
         }
-        # 处理当文件不存在时的情况
-        if not self.config_path.exists():
-            logger.warning("Cannot get config file")
-            logger.warning("Create a new config file")
-            with open(self.config_path, mode="w", encoding="utf-8") as config_file:
-                dump(default_config, config_file)
-            return default_config
-        # 捕获解析错误
+        self.verified_config = self._verify_config(self.default_config, config)
+        # 加载渲染器
+        self.renderer = Renderer(self.plugin_path, self.verified_config, self.temp_path)
+        # 加载其他资源
+        with open(self.plugin_path / "assets/splashes.txt", encoding="utf-8") as splashes_file:
+            self.splashes = splashes_file.readlines()
+        # fmt: on
+
+    def _verify_config(self, base_config: dict, user_config: AstrBotConfig):
         try:
-            with open(self.config_path, mode="rb") as config_file:
-                user_config = load(config_file)
-            logger.info(f"{user_config}")
-            verified_config = self._verify_config(default_config, user_config)
-            return verified_config
-        except exceptions.TOMLKitError:
-            logger.warning("Config is broken!")
-            logger.warning("Please check you config")
-            return default_config
-
-    """
-    TODO:这里是硬编码判断，或许以后能优化一下
-    """
-
-    def _verify_config(self, base_config, user_config):
-        verified_config = {}
-        if "ping_thresholds" in user_config:
-            verified_config["ping_thresholds"] = {}
-            for item in base_config["ping_thresholds"]:
-                if item in user_config["ping_thresholds"]:
-                    if isinstance(
-                        user_config["ping_thresholds"][item], int
-                    ) or isinstance(user_config["ping_thresholds"][item], float):
-                        verified_config["ping_thresholds"][item] = user_config[
-                            "ping_thresholds"
-                        ][item]
-                    else:
-                        logger.warning(
-                            f"Config item ping_thresholds.{item} have wrong content: {user_config['ping_thresholds'][item]}"
-                        )
-                        logger.warning("Use default config to override this item")
-                        verified_config["ping_thresholds"][item] = base_config[
-                            "ping_thresholds"
-                        ][item]
-                else:
-                    logger.warning(f"Config dose not have item: ping_thresholds.{item}")
-                    logger.warning("Use default config to override this item")
-                    verified_config["ping_thresholds"][item] = base_config[
-                        "ping_thresholds"
-                    ][item]
-        else:
-            logger.warning("Config dose not have item: ping_thresholds")
-            logger.warning("Use default config to override this item")
-            verified_config["ping_thresholds"] = base_config["ping_thresholds"]
-
-        return verified_config
+            return PluginConfig.model_validate(user_config)
+        except ValidationError as e:
+            logger.warning("Plugin Config error occurred.")
+            logger.warning("Default Config will be used to override.")
+            logger.warning(f"{e}")
+            return PluginConfig.model_validate(base_config)
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""

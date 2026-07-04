@@ -12,13 +12,14 @@ from PIL import Image, ImageDraw, ImageFont
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent
 
+from .config import PluginConfig
 from .motdinfo import JAVA_COLORS, JAVA_FORMATS, JavaFormatting, JavaMinecraftColor
 
 
 class Renderer:
     """实现MOTD的渲染逻辑"""
 
-    def __init__(self, plugin_path: Path, config: dict, temp_path: Path):
+    def __init__(self, plugin_path: Path, config: PluginConfig, temp_path: Path):
         # fmt: off
         self.config = config
         self.plugin_path = plugin_path
@@ -115,23 +116,23 @@ class Renderer:
             )
 
         # 添加延迟显示
-        if status.latency <= self.config["ping_thresholds"]["excellent"]:
+        if status.latency <= self.config.ping_thresholds.excellent:
             pic.paste(
                 self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
             )
-        elif status.latency <= self.config["ping_thresholds"]["good"]:
+        elif status.latency <= self.config.ping_thresholds.good:
             pic.paste(
                 self.ping_icons["ping4"], (1200, 10), mask=self.ping_icons["ping4"]
             )
-        elif status.latency <= self.config["ping_thresholds"]["medium"]:
+        elif status.latency <= self.config.ping_thresholds.medium:
             pic.paste(
                 self.ping_icons["ping3"], (1200, 10), mask=self.ping_icons["ping3"]
             )
-        elif status.latency <= self.config["ping_thresholds"]["bad"]:
+        elif status.latency <= self.config.ping_thresholds.bad:
             pic.paste(
                 self.ping_icons["ping2"], (1200, 10), mask=self.ping_icons["ping2"]
             )
-        elif status.latency > self.config["ping_thresholds"]["bad"]:
+        elif status.latency > self.config.ping_thresholds.bad:
             pic.paste(
                 self.ping_icons["ping1"], (1200, 10), mask=self.ping_icons["ping1"]
             )
