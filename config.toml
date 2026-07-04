@@ -1,5 +1,0 @@
-[ping_thresholds]
-excellent = 50
-good = 100
-medium = 200
-bad = 500
