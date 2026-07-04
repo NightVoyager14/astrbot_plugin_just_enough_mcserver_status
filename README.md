@@ -1,6 +1,6 @@
 
-<div align="center">
-    <img src="logo.png" width="100"/>
+<div align="left">
+    <img src="https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/logo.png" width="100"/>
     <h1>Just Enough McServer Status</h1>
 </div>
 
@@ -10,7 +10,7 @@
 [![version](https://img.shields.io/github/v/tag/NightVoyager14/astrbot_plugin_just_enough_mcserver_status?label=JEMSS)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status)
 [![AstrBot](https://img.shields.io/badge/AstrBot-Plugin-skyblue)](https://github.com/AstrBotDevs/AstrBot)
 
-> 一个为AstrBot实现Minecraft服务器查询功能的插件，图片渲染本地化，不依赖外部服务
+> 一个为AstrBot实现Minecraft服务器查询功能的插件，图片渲染本地化，无需额外浏览器环境
 
 ## 写在前面
 
@@ -19,15 +19,21 @@
 
 ## 效果展示
 
-![example01](images/example01.png)
+![example01](https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/images/example01.png)
 
 ## 插件功能
+
+### 指令
 
 - **`/jeping status <服务器地址[:端口]> [名称]`** — 获取 Java 版服务器状态（在线人数、MOTD、延迟等）
 - **`/jemss version`** — 查看插件版本
 - **`/jemss splash`** — 随机获取一条启动标语
 - **`/jemss admin`** (管理员) — 管理员测试指令
 - **`/jemss help`** — 显示帮助信息
+
+### Agent tools
+
+- `je_server_status` — 为AI提供查询接口
 
 ## 插件配置
 
@@ -37,19 +43,21 @@
 ```toml
 # 设置ping不同图标的显示范围
 [ping_thresholds]
-excellent = 50
-good = 100
-medium = 200
-bad = 500
+excellent = 50    # 延迟优秀  <50ms
+good = 100        # 延迟较好  <100ms
+medium = 200      # 延迟一般  <200ms
+bad = 500         # 延迟较差  <500ms
+# 延迟糟糕 >500ms  
 ```
 
 ## 特别感谢
 
-感谢 [mctext](https://github.com/Hexze/mctext) 提供的Minecraft字体文件  
-感谢 [mcstatus](https://github.com/py-mine/mcstatus) 提供的Minecraft服务器查询与解析实现
+- [mctext](https://github.com/Hexze/mctext) 提供的Minecraft字体文件  
+- [mcstatus](https://github.com/py-mine/mcstatus) 提供的Minecraft服务器查询与数据解析实现  
+- [AstrBot](https://github.com/AstrBotDevs/AstrBot) 优秀机器人框架  
 
 <div align="center">
-<img src="images/watashiwa-koseino-desukara.gif" width="100"/>
+<img src="https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/images/watashiwa-koseino-desukara.gif" width="100"/>
 
 私は、高性能ですから！Minecraftの対応も、もちろんお手の物です！
 </div>
