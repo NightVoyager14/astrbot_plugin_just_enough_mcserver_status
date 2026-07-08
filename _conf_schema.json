@@ -4,6 +4,12 @@
     "type": "object",
     "hint": "延迟图标展示的阈值设置",
     "items": {
+      "is_opened": {
+        "description": "延迟图标显示",
+        "hint": "是否开启延迟图标在信息卡片中渲染",
+        "type": "bool",
+        "default": true
+      },
       "excellent": {
         "description": "Excellent",
         "type": "int",

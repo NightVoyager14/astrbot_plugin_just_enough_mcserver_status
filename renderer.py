@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from mcstatus import JavaServer
+from mcstatus.motd.components import ParsedMotdComponent
 from mcstatus.responses.bedrock import BedrockStatusResponse
 from mcstatus.responses.java import JavaStatusResponse
 from PIL import Image, ImageDraw, ImageFont
@@ -72,7 +73,6 @@ class Renderer:
         # fmt:on
 
     """
-    TODO:这里功能的实现太集中了，要分割成多个函数
     TODO:渐变色一类的webcolor支持
     TODO:随机代码支持
     """
@@ -82,7 +82,7 @@ class Renderer:
         server: JavaServer,
         status: JavaStatusResponse,
         event: AstrMessageEvent,
-        name: str | None,
+        title: str | None,
     ) -> str:
         pic = Image.new("RGBA", (1248, 144))
         pic_drawer = ImageDraw.Draw(pic)
@@ -91,7 +91,49 @@ class Renderer:
         background = Image.open(self.plugin_path / "assets/background_dark.png")
         pic.paste(background, (0, 0))
 
-        # 添加服务器头像
+        # 添加服务器标题
+        self._add_server_title(title, server, pic_drawer)
+
+        # 添加服务器图标
+        self._add_server_icon(status, pic)
+
+        # 添加延迟显示
+        if self.config.ping_thresholds.is_opened:
+            self._add_delay_icon(status, pic)
+
+        # 添加在线人数显示
+        self._add_player_count(status, pic_drawer)
+
+        # 解析motd
+        motd = status.motd.parsed
+        self._add_motd(motd, pic_drawer)
+
+        # TODO:优化缓存
+        # 设置缓存文件路径
+        session_id = event.get_session_id()
+        # 删除同对话的之前缓存
+        old_files = self.temp_path.glob(f"JEMSSPlugin_temp_img_{session_id}*.png")
+        for old_file in old_files:
+            try:
+                os.remove(old_file)
+            except Exception as e:
+                logger.warning(f"Cannot remove tempfile: {old_file}")
+                logger.warning(f"Reason: {e}")
+                logger.warning("You can delete it by yourself.")
+        logger.info(datetime.now())
+        pic_temp_path = (
+            self.temp_path
+            / f"JEMSSPlugin_temp_img_{session_id}_{datetime.now().strftime('%y%m%d%H%M%S%f')}.png"
+        )
+        logger.info(f"Temp server info picture path: {pic_temp_path}")
+
+        # 保存文件
+        pic.save(pic_temp_path, "PNG")
+
+        return str(pic_temp_path)
+
+    def _add_server_icon(self, status: JavaStatusResponse, pic: Image.Image):
+        """添加服务器头像"""
         if status.icon and status.icon.startswith("data:image/png;base64,"):
             icon_data = base64.b64decode(status.icon.split(",")[1])
             icon = Image.open(io.BytesIO(icon_data), formats=["PNG"])
@@ -101,10 +143,14 @@ class Renderer:
             logger.warning("Can't parse the server icon")
             pic.paste(self.unknown_icon, (20, 8), mask=self.unknown_icon)
 
-        if name:
+    def _add_server_title(
+        self, title: str | None, server: JavaServer, pic_drawer: ImageDraw.ImageDraw
+    ):
+        """添加展示的标题"""
+        if title:
             pic_drawer.text(
                 (160, 8),
-                f"{name}",
+                f"{title}",
                 font=self.font_title,
             )
         else:
@@ -115,7 +161,8 @@ class Renderer:
                 font=self.font_title,
             )
 
-        # 添加延迟显示
+    def _add_delay_icon(self, status: JavaStatusResponse, pic: Image.Image):
+        """添加延迟图标"""
         if status.latency <= self.config.ping_thresholds.excellent:
             pic.paste(
                 self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
@@ -137,7 +184,10 @@ class Renderer:
                 self.ping_icons["ping1"], (1200, 10), mask=self.ping_icons["ping1"]
             )
 
-        # 添加在线人数显示
+    def _add_player_count(
+        self, status: JavaStatusResponse, pic_drawer: ImageDraw.ImageDraw
+    ):
+        """添加在线人数显示"""
         player_length = pic_drawer.textlength(
             f"{status.players.online}/{status.players.max}", font=self.font_player
         )
@@ -148,9 +198,8 @@ class Renderer:
             fill=(128, 128, 128),
         )
 
-        # 解析motd
-        motd = status.motd.parsed
-
+    def _add_motd(self, motd: list[ParsedMotdComponent], pic_drawer: ImageDraw.ImageDraw):
+        """格式化渲染状态机"""
         # 设置状态机的状态
         initial_position = (160, 60)
         current_x, current_y = initial_position
@@ -238,30 +287,6 @@ class Renderer:
                     current_strikethrough = False
                     current_underlined = False
                     current_obfuscated = False
-
-        # TODO:优化缓存
-        # 设置缓存文件路径
-        session_id = event.get_session_id()
-        # 删除同对话的之前缓存
-        old_files = self.temp_path.glob(f"JEMSSPlugin_temp_img_{session_id}*.png")
-        for old_file in old_files:
-            try:
-                os.remove(old_file)
-            except Exception as e:
-                logger.warning(f"Cannot remove tempfile: {old_file}")
-                logger.warning(f"Reason: {e}")
-                logger.warning("You can delete it by yourself.")
-        logger.info(datetime.now())
-        pic_temp_path = (
-            self.temp_path
-            / f"JEMSSPlugin_temp_img_{session_id}_{datetime.now().strftime('%y%m%d%H%M%S%f')}.png"
-        )
-        logger.info(f"Temp server info picture path: {pic_temp_path}")
-
-        # 保存文件
-        pic.save(pic_temp_path, "PNG")
-
-        return str(pic_temp_path)
 
     def _get_motd_font(self, bold_status: bool, italic_status: bool):
         """获取italic与bold对应的字体"""

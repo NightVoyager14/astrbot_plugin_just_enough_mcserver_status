@@ -2,6 +2,7 @@ from pydantic import BaseModel, model_validator
 
 
 class PingThresholds(BaseModel):
+    is_opened: bool = True
     excellent: int = 50
     good: int = 100
     medium: int = 200

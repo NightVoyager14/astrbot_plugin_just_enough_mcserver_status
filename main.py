@@ -37,6 +37,7 @@ class JEMSSPlugin(Star):
         # 加载配置
         self.default_config = {
             "ping_thresholds": {
+                "is_opened": True,
                 "excellent": 50,
                 "good": 100,
                 "medium": 200,
@@ -161,7 +162,7 @@ class JEMSSPlugin(Star):
             f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
             f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
             f"• 延迟: {round(server_status.latency, 2)}ms\n"
-            f"• DNS(RSV)解析: {server.address.host}:{server.address.port}\n"
+            f"• DNS(SRV) 解析: {server.address.host}:{server.address.port}\n"
             f"• motd: \n"
             "```text\n"
             f"\u200b{server_status.motd.to_plain()}\u200b\n"
