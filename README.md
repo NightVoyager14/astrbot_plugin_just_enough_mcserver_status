@@ -6,8 +6,8 @@
 
 [![License](https://img.shields.io/badge/License-AGPL_v3-orange.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![repo](https://img.shields.io/badge/github-repo-blue?logo=github)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status)
-[![Python](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![version](https://img.shields.io/github/v/tag/NightVoyager14/astrbot_plugin_just_enough_mcserver_status?label=JEMSS)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status)
+[![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![version](https://img.shields.io/github/v/tag/NightVoyager14/astrbot_plugin_just_enough_mcserver_status?label=JEMSS)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/releases/latest)
 [![AstrBot](https://img.shields.io/badge/AstrBot-Plugin-skyblue)](https://github.com/AstrBotDevs/AstrBot)
 
 > 一个为AstrBot实现Minecraft服务器查询功能的插件，图片渲染本地化，无需额外浏览器环境
