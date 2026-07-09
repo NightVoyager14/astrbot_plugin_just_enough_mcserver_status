@@ -14,7 +14,7 @@ from astrbot.api.star import Context, Star
 from astrbot.core.utils import astrbot_path
 
 from .config import PluginConfig
-from .renderer import Renderer
+from .renderer import Renderer, SecurityException
 from .tools import JEMSSTool
 
 
@@ -33,14 +33,16 @@ class JEMSSPlugin(Star):
         )
         self.temp_path = Path(astrbot_path.get_astrbot_temp_path()) / "JEMSSPlugin_temp_pics"
         self.temp_path.mkdir(exist_ok=True)
+        self.data_path = Path(astrbot_path.get_astrbot_data_path()) / "plugin_data/astrbot_plugin_just_enough_mcserver_status"
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
+        logger.info(f"Plugin data path: {self.data_path}")
         # 加载配置
         self.verified_config = self._verify_config(config)
         logger.debug(f"Original Config: {json.dumps(config, ensure_ascii=False, indent=4)}")
         logger.debug(f"Verified Config: {self.verified_config.model_dump_json(indent=4)}")
         # 加载渲染器
-        self.renderer = Renderer(self.plugin_path, self.verified_config, self.temp_path)
+        self.renderer = Renderer(self.plugin_path, self.verified_config, self.temp_path, self.data_path)
         # 加载其他资源
         with open(self.plugin_path / "assets/splashes.txt", encoding="utf-8") as splashes_file:
             self.splashes = splashes_file.readlines()
@@ -145,25 +147,28 @@ class JEMSSPlugin(Star):
             return
 
         # 信息图片渲染
-        info_pic = self.renderer.server_info_render(
-            server, server_status, event, server_name
-        )
+        try:
+            info_pic = self.renderer.server_info_render(
+                server, server_status, event, server_name
+            )
+            # 消息输出信息图片和文字
+            # HACK: 这里为了排版增加了零宽字符\u200b，但这样对复制不友好，目前尚未想好解决办法
+            yield event.image_result(info_pic)
+            yield event.plain_result(
+                f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
+                f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
+                f"• 延迟: {round(server_status.latency, 2)}ms\n"
+                f"• DNS(SRV) 解析: {server.address.host}:{server.address.port}\n"
+                f"• motd: \n"
+                "```text\n"
+                f"\u200b{server_status.motd.to_plain()}\u200b\n"
+                "```"
+            )
 
-        # 消息输出信息图片和文字
-        # HACK: 这里为了排版增加了零宽字符\u200b，但这样对复制不友好，目前尚未想好解决办法
-        yield event.image_result(info_pic)
-        yield event.plain_result(
-            f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
-            f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
-            f"• 延迟: {round(server_status.latency, 2)}ms\n"
-            f"• DNS(SRV) 解析: {server.address.host}:{server.address.port}\n"
-            f"• motd: \n"
-            "```text\n"
-            f"\u200b{server_status.motd.to_plain()}\u200b\n"
-            "```"
-        )
+            logger.info(server_status.motd.to_plain())
+        except SecurityException:
+            yield event.plain_result("自定义背景设置失败，请检查配置")
 
-        logger.info(server_status.motd.to_plain())
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""

@@ -1,90 +1,126 @@
 {
-  "ping_icon": {
-    "description": "延迟图标",
+  "info_card": {
+    "description": "信息卡片",
     "type": "object",
-    "hint": "延迟图标展示设置",
+    "hint": "信息卡片相关内容配置",
     "items": {
-      "is_opened": {
-        "description": "延迟图标显示",
-        "hint": "是否开启延迟图标在信息卡片中渲染",
-        "type": "bool",
-        "default": true
+      "ping_indicator": {
+        "description": "延迟指示器",
+        "type": "object",
+        "hint": "延迟展示器的相关配置",
+        "items": {
+          "enabled": {
+            "description": "延迟指示器显示",
+            "hint": "是否开启延迟指示器在信息卡片中渲染",
+            "type": "bool",
+            "default": true
+          },
+          "ping_thresholds": {
+            "description": "阈值",
+            "type": "object",
+            "hint": "延迟指示器阈值设置（ms）",
+            "items": {
+              "excellent": {
+                "description": "Excellent",
+                "type": "int",
+                "hint": "延迟优秀",
+                "default": 50
+              },
+              "good": {
+                "description": "Good",
+                "type": "int",
+                "hint": "延迟较好",
+                "default": 100
+              },
+              "medium": {
+                "description": "Medium",
+                "type": "int",
+                "hint": "延迟一般",
+                "default": 200
+              },
+              "bad": {
+                "description": "Bad",
+                "type": "int",
+                "hint": "延迟较差",
+                "default": 500
+              }
+            }
+          }
+        }
       },
-      "excellent": {
-        "description": "Excellent",
-        "type": "int",
-        "hint": "延迟优秀",
-        "default": 50
+      "icon": {
+        "description": "图标",
+        "type": "object",
+        "hint": "服务器图标相关配置",
+        "items": {
+          "enabled": {
+            "description": "服务器图标显示",
+            "hint": "是否开启服务器图标在信息卡片中渲染",
+            "type": "bool",
+            "default": true
+          }
+        }
       },
-      "good": {
-        "description": "Good",
-        "type": "int",
-        "hint": "延迟较好",
-        "default": 100
+      "title": {
+        "description": "标题",
+        "type": "object",
+        "hint": "服务器标题相关配置",
+        "items": {
+          "enabled": {
+            "description": "标题显示",
+            "hint": "是否开启服务器标题在信息卡片中渲染",
+            "type": "bool",
+            "default": true
+          }
+        }
       },
-      "medium": {
-        "description": "Medium",
-        "type": "int",
-        "hint": "延迟一般",
-        "default": 200
+      "motd": {
+        "description": "MOTD",
+        "type": "object",
+        "hint": "服务器MOTD相关配置",
+        "items": {
+          "enabled": {
+            "description": "MOTD显示",
+            "hint": "是否开启服务器MOTD在信息卡片中渲染",
+            "type": "bool",
+            "default": true
+          }
+        }
       },
-      "bad": {
-        "description": "Bad",
-        "type": "int",
-        "hint": "延迟较差",
-        "default": 500
-      }
-    }
-  },
-  "server_icon": {
-    "description": "服务器图标",
-    "type": "object",
-    "hint": "服务器图标展示设置",
-    "items": {
-      "is_opened": {
-        "description": "服务器图标显示",
-        "hint": "是否开启服务器图标在信息卡片中渲染",
-        "type": "bool",
-        "default": true
-      }
-    }
-  },
-  "server_title": {
-    "description": "服务器标题",
-    "type": "object",
-    "hint": "服务器标题展示设置",
-    "items": {
-      "is_opened": {
-        "description": "服务器标题显示",
-        "hint": "是否开启服务器标题在信息卡片中渲染",
-        "type": "bool",
-        "default": true
-      }
-    }
-  },
-  "server_motd": {
-    "description": "服务器MOTD",
-    "type": "object",
-    "hint": "服务器MOTD展示设置",
-    "items": {
-      "is_opened": {
-        "description": "服务器MOTD显示",
-        "hint": "是否开启服务器MOTD在信息卡片中渲染",
-        "type": "bool",
-        "default": true
-      }
-    }
-  },
-  "player_count": {
-    "description": "服务器在线人数",
-    "type": "object",
-    "hint": "服务器在线人数展示设置",
-    "items": {
-      "is_opened": {
-        "description": "服务器在线人数显示",
-        "hint": "是否开启服务器在线人数在信息卡片中渲染",
-        "type": "bool",
-        "default": true
+      "player_count": {
+        "description": "在线人数",
+        "type": "object",
+        "hint": "服务器在线人数相关配置",
+        "items": {
+          "enabled": {
+            "description": "在线人数显示",
+            "hint": "是否开启服务器在线人数在信息卡片中渲染",
+            "type": "bool",
+            "default": true
+          }
+        }
+      },
+      "background": {
+        "description": "背景",
+        "type": "object",
+        "hint": "信息卡片背景相关配置",
+        "items": {
+          "enabled": {
+            "description": "自定义背景",
+            "hint": "是否启用自定义的背景，若关闭则自动使用默认背景",
+            "type": "bool",
+            "default": false
+          },
+          "upload": {
+            "description": "上传背景图片",
+            "type": "file",
+            "hint": "请上传一张格式为PNG格式的图片（大小：1248 × 144，如果不是插件会自行拉伸），若上传多张每次渲染会随机选用一张",
+            "default": [],
+            "file_types": [
+              "png"
+            ]
+          }
+        }
       }
     }
   }

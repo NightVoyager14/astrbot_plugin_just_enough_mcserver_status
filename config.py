@@ -1,34 +1,55 @@
 from pydantic import BaseModel, model_validator
 
 
-class PingIcon(BaseModel):
-    is_opened: bool = True
+class PingThresholdsConfig(BaseModel):
     excellent: int = 50
     good: int = 100
     medium: int = 200
     bad: int = 500
 
     @model_validator(mode="after")
-    def check_order(self) -> "PingIcon":
+    def check_order(self) -> "PingThresholdsConfig":
         if not (self.excellent < self.good < self.medium < self.bad):
-            raise ValueError("Config item ping_icon's thresholds have wrong order.The order must be excellent < good < medium < bad")
+            raise ValueError(
+                "Config item ping_indicator's ping_thresholds has wrong order.The order must be excellent < good < medium < bad"
+            )
         return self
 
-class ServerIcon(BaseModel):
-    is_opened: bool = True
 
-class ServerTitle(BaseModel):
-    is_opened: bool = True
+class PingIndicatorConfig(BaseModel):
+    enabled: bool = True
+    ping_thresholds: PingThresholdsConfig = PingThresholdsConfig()
 
-class ServerMotd(BaseModel):
-    is_opened: bool = True
 
-class PlayerCount(BaseModel):
-    is_opened: bool = True
+class IconConfig(BaseModel):
+    enabled: bool = True
+
+
+class TitleConfig(BaseModel):
+    enabled: bool = True
+
+
+class MotdConfig(BaseModel):
+    enabled: bool = True
+
+
+class PlayerCountConfig(BaseModel):
+    enabled: bool = True
+
+
+class BackgroundConfig(BaseModel):
+    enabled: bool = False
+    upload: list[str] = []
+
+
+class InfoCardConfig(BaseModel):
+    ping_indicator: PingIndicatorConfig = PingIndicatorConfig()
+    icon: IconConfig = IconConfig()
+    title: TitleConfig = TitleConfig()
+    motd: MotdConfig = MotdConfig()
+    player_count: PlayerCountConfig = PlayerCountConfig()
+    background: BackgroundConfig = BackgroundConfig()
+
 
 class PluginConfig(BaseModel):
-    ping_icon: PingIcon = PingIcon()
-    server_icon: ServerIcon = ServerIcon()
-    server_title: ServerTitle = ServerTitle()
-    server_motd: ServerMotd = ServerMotd()
-    player_count: PlayerCount = PlayerCount()
+    info_card: InfoCardConfig = InfoCardConfig()

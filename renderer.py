@@ -1,6 +1,7 @@
 import base64
 import io
 import os
+import random
 from datetime import datetime
 from pathlib import Path
 
@@ -8,7 +9,7 @@ from mcstatus import JavaServer
 from mcstatus.motd.components import ParsedMotdComponent
 from mcstatus.responses.bedrock import BedrockStatusResponse
 from mcstatus.responses.java import JavaStatusResponse
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, UnidentifiedImageError
 
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent
@@ -17,14 +18,21 @@ from .config import PluginConfig
 from .motdinfo import JAVA_COLORS, JAVA_FORMATS, JavaFormatting, JavaMinecraftColor
 
 
+# TODO:完善错误处理
+class SecurityException(Exception):
+    pass
+
 class Renderer:
     """实现MOTD的渲染逻辑"""
 
-    def __init__(self, plugin_path: Path, config: PluginConfig, temp_path: Path):
+    def __init__(
+        self, plugin_path: Path, config: PluginConfig, temp_path: Path, data_path: Path
+    ):
         # fmt: off
         self.config = config
         self.plugin_path = plugin_path
         self.temp_path = temp_path
+        self.data_path = data_path
         # 加载字体资源
         self.font_title = ImageFont.truetype(
             plugin_path / "fonts/minecraft.ttf", size=50
@@ -45,6 +53,9 @@ class Renderer:
             plugin_path / "fonts/minecraft.ttf", size=30
         )
         # 加载贴图
+        self.default_background = Image.open(
+            self.plugin_path / "assets/background_dark.png"
+        )
         self.ping_icons = {
             "ping1": Image.open(plugin_path / "assets/ping_1.png")
             .resize((40, 32), resample=0)
@@ -88,27 +99,26 @@ class Renderer:
         pic_drawer = ImageDraw.Draw(pic)
 
         # 设置背景
-        background = Image.open(self.plugin_path / "assets/background_dark.png")
-        pic.paste(background, (0, 0))
+        self._set_background(pic)
 
         # 添加服务器标题
-        if self.config.server_title.is_opened:
+        if self.config.info_card.title.enabled:
             self._add_server_title(title, server, pic_drawer)
 
         # 添加服务器图标
-        if self.config.server_icon.is_opened:
+        if self.config.info_card.icon.enabled:
             self._add_server_icon(status, pic)
 
         # 添加延迟显示
-        if self.config.ping_icon.is_opened:
-            self._add_delay_icon(status, pic)
+        if self.config.info_card.ping_indicator.enabled:
+            self._add_ping_indicator(status, pic)
 
         # 添加在线人数显示
-        if self.config.player_count.is_opened:
+        if self.config.info_card.player_count.enabled:
             self._add_player_count(status, pic_drawer)
 
         # 解析motd
-        if self.config.server_motd.is_opened:
+        if self.config.info_card.motd.enabled:
             motd = status.motd.parsed
             self._add_motd(motd, pic_drawer)
 
@@ -135,6 +145,30 @@ class Renderer:
         pic.save(pic_temp_path, "PNG")
 
         return str(pic_temp_path)
+
+    # TODO:更加完善的自定义背景机制
+    def _set_background(self, pic: Image.Image):
+        if (
+            self.config.info_card.background.enabled
+            and self.config.info_card.background.upload
+        ):
+            # 防止路径穿越
+            # TODO:自动回退为默认与错误带代码和文档设置
+            user_background_path = self.data_path.joinpath(random.choice(self.config.info_card.background.upload)).resolve()
+            if not user_background_path.is_relative_to(self.data_path.resolve()):
+                logger.error("Directory Traversal Attack is occured.")
+                raise SecurityException
+            try:
+                user_background = Image.open(user_background_path).resize((1248, 144))
+                pic.paste(user_background, (0, 0))
+            except FileNotFoundError:
+                logger.warning("Can not find the background file, please check your config and background picture.")
+                pic.paste(self.default_background, (0, 0))
+            except UnidentifiedImageError:
+                logger.warning("Can not open the background file, please check your background file.")
+                pic.paste(self.default_background, (0, 0))
+        else:
+            pic.paste(self.default_background, (0, 0))
 
     def _add_server_icon(self, status: JavaStatusResponse, pic: Image.Image):
         """添加服务器头像"""
@@ -165,25 +199,33 @@ class Renderer:
                 font=self.font_title,
             )
 
-    def _add_delay_icon(self, status: JavaStatusResponse, pic: Image.Image):
+    def _add_ping_indicator(self, status: JavaStatusResponse, pic: Image.Image):
         """添加延迟图标"""
-        if status.latency <= self.config.ping_icon.excellent:
+        if (
+            status.latency
+            <= self.config.info_card.ping_indicator.ping_thresholds.excellent
+        ):
             pic.paste(
                 self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
             )
-        elif status.latency <= self.config.ping_icon.good:
+        elif (
+            status.latency <= self.config.info_card.ping_indicator.ping_thresholds.good
+        ):
             pic.paste(
                 self.ping_icons["ping4"], (1200, 10), mask=self.ping_icons["ping4"]
             )
-        elif status.latency <= self.config.ping_icon.medium:
+        elif (
+            status.latency
+            <= self.config.info_card.ping_indicator.ping_thresholds.medium
+        ):
             pic.paste(
                 self.ping_icons["ping3"], (1200, 10), mask=self.ping_icons["ping3"]
             )
-        elif status.latency <= self.config.ping_icon.bad:
+        elif status.latency <= self.config.info_card.ping_indicator.ping_thresholds.bad:
             pic.paste(
                 self.ping_icons["ping2"], (1200, 10), mask=self.ping_icons["ping2"]
             )
-        elif status.latency > self.config.ping_icon.bad:
+        else:
             pic.paste(
                 self.ping_icons["ping1"], (1200, 10), mask=self.ping_icons["ping1"]
             )
@@ -202,7 +244,9 @@ class Renderer:
             fill=(128, 128, 128),
         )
 
-    def _add_motd(self, motd: list[ParsedMotdComponent], pic_drawer: ImageDraw.ImageDraw):
+    def _add_motd(
+        self, motd: list[ParsedMotdComponent], pic_drawer: ImageDraw.ImageDraw
+    ):
         """格式化渲染状态机"""
         # 设置状态机的状态
         initial_position = (160, 60)
