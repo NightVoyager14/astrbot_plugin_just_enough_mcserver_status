@@ -1,6 +1,6 @@
 
 <div align="left">
-    <img src="https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/logo.png" width="100"/>
+    <img src="https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/logo.png" width="120"/>
     <h1>Just Enough McServer Status</h1>
 </div>
 
@@ -19,7 +19,7 @@
 
 ## 效果展示
 
-![example01](https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/images/example01.png)
+![example01](https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/images/example01.png)
 
 ## 插件功能
 
@@ -48,7 +48,7 @@
 - [AstrBot](https://github.com/AstrBotDevs/AstrBot) 提供的优秀机器人框架  
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/refs/heads/main/images/watashiwa-koseino-desukara.gif" width="100"/>
+<img src="https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/images/watashiwa-koseino-desukara.gif" width="100"/>
 
 私は、高性能ですから！Minecraftの対応も、もちろんお手の物です！
 </div>
