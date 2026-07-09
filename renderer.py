@@ -92,21 +92,25 @@ class Renderer:
         pic.paste(background, (0, 0))
 
         # 添加服务器标题
-        self._add_server_title(title, server, pic_drawer)
+        if self.config.server_title.is_opened:
+            self._add_server_title(title, server, pic_drawer)
 
         # 添加服务器图标
-        self._add_server_icon(status, pic)
+        if self.config.server_icon.is_opened:
+            self._add_server_icon(status, pic)
 
         # 添加延迟显示
-        if self.config.ping_thresholds.is_opened:
+        if self.config.ping_icon.is_opened:
             self._add_delay_icon(status, pic)
 
         # 添加在线人数显示
-        self._add_player_count(status, pic_drawer)
+        if self.config.player_count.is_opened:
+            self._add_player_count(status, pic_drawer)
 
         # 解析motd
-        motd = status.motd.parsed
-        self._add_motd(motd, pic_drawer)
+        if self.config.server_motd.is_opened:
+            motd = status.motd.parsed
+            self._add_motd(motd, pic_drawer)
 
         # TODO:优化缓存
         # 设置缓存文件路径
@@ -163,23 +167,23 @@ class Renderer:
 
     def _add_delay_icon(self, status: JavaStatusResponse, pic: Image.Image):
         """添加延迟图标"""
-        if status.latency <= self.config.ping_thresholds.excellent:
+        if status.latency <= self.config.ping_icon.excellent:
             pic.paste(
                 self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
             )
-        elif status.latency <= self.config.ping_thresholds.good:
+        elif status.latency <= self.config.ping_icon.good:
             pic.paste(
                 self.ping_icons["ping4"], (1200, 10), mask=self.ping_icons["ping4"]
             )
-        elif status.latency <= self.config.ping_thresholds.medium:
+        elif status.latency <= self.config.ping_icon.medium:
             pic.paste(
                 self.ping_icons["ping3"], (1200, 10), mask=self.ping_icons["ping3"]
             )
-        elif status.latency <= self.config.ping_thresholds.bad:
+        elif status.latency <= self.config.ping_icon.bad:
             pic.paste(
                 self.ping_icons["ping2"], (1200, 10), mask=self.ping_icons["ping2"]
             )
-        elif status.latency > self.config.ping_thresholds.bad:
+        elif status.latency > self.config.ping_icon.bad:
             pic.paste(
                 self.ping_icons["ping1"], (1200, 10), mask=self.ping_icons["ping1"]
             )

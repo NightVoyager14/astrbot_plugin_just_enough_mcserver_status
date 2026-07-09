@@ -1,3 +1,4 @@
+import json
 import random
 from pathlib import Path
 
@@ -35,16 +36,9 @@ class JEMSSPlugin(Star):
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
         # 加载配置
-        self.default_config = {
-            "ping_thresholds": {
-                "is_opened": True,
-                "excellent": 50,
-                "good": 100,
-                "medium": 200,
-                "bad": 500,
-            }
-        }
-        self.verified_config = self._verify_config(self.default_config, config)
+        self.verified_config = self._verify_config(config)
+        logger.debug(f"Original Config: {json.dumps(config, ensure_ascii=False, indent=4)}")
+        logger.debug(f"Verified Config: {self.verified_config.model_dump_json(indent=4)}")
         # 加载渲染器
         self.renderer = Renderer(self.plugin_path, self.verified_config, self.temp_path)
         # 加载其他资源
@@ -52,14 +46,14 @@ class JEMSSPlugin(Star):
             self.splashes = splashes_file.readlines()
         # fmt: on
 
-    def _verify_config(self, base_config: dict, user_config: AstrBotConfig):
+    def _verify_config(self, user_config: AstrBotConfig):
         try:
             return PluginConfig.model_validate(user_config)
         except ValidationError as e:
             logger.warning("Plugin Config error occurred.")
             logger.warning("Default Config will be used to override.")
             logger.warning(f"{e}")
-            return PluginConfig.model_validate(base_config)
+            return PluginConfig()
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
@@ -146,7 +140,7 @@ class JEMSSPlugin(Star):
             logger.error(f"Can't get server information {server_address}")
             logger.error(f"Error info: {e}")
             yield event.plain_result(
-                "无法获取服务器信息，请检查输入服务器是否正确或稍后重试"
+                "无法获取服务器信息，请检查输入的服务器地址是否正确或者稍后重试"
             )
             return
 

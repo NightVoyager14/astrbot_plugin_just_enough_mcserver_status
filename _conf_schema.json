@@ -1,8 +1,8 @@
 {
-  "ping_thresholds": {
+  "ping_icon": {
     "description": "延迟图标",
     "type": "object",
-    "hint": "延迟图标展示的阈值设置",
+    "hint": "延迟图标展示设置",
     "items": {
       "is_opened": {
         "description": "延迟图标显示",
@@ -33,6 +33,58 @@
         "type": "int",
         "hint": "延迟较差",
         "default": 500
+      }
+    }
+  },
+  "server_icon": {
+    "description": "服务器图标",
+    "type": "object",
+    "hint": "服务器图标展示设置",
+    "items": {
+      "is_opened": {
+        "description": "服务器图标显示",
+        "hint": "是否开启服务器图标在信息卡片中渲染",
+        "type": "bool",
+        "default": true
+      }
+    }
+  },
+  "server_title": {
+    "description": "服务器标题",
+    "type": "object",
+    "hint": "服务器标题展示设置",
+    "items": {
+      "is_opened": {
+        "description": "服务器标题显示",
+        "hint": "是否开启服务器标题在信息卡片中渲染",
+        "type": "bool",
+        "default": true
+      }
+    }
+  },
+  "server_motd": {
+    "description": "服务器MOTD",
+    "type": "object",
+    "hint": "服务器MOTD展示设置",
+    "items": {
+      "is_opened": {
+        "description": "服务器MOTD显示",
+        "hint": "是否开启服务器MOTD在信息卡片中渲染",
+        "type": "bool",
+        "default": true
+      }
+    }
+  },
+  "player_count": {
+    "description": "服务器在线人数",
+    "type": "object",
+    "hint": "服务器在线人数展示设置",
+    "items": {
+      "is_opened": {
+        "description": "服务器在线人数显示",
+        "hint": "是否开启服务器在线人数在信息卡片中渲染",
+        "type": "bool",
+        "default": true
       }
     }
   }
