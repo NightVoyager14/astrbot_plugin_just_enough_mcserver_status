@@ -1,6 +1,7 @@
 import json
 import random
 from pathlib import Path
+from socket import gaierror
 
 from mcstatus import JavaServer
 from mcstatus.responses.bedrock import BedrockStatusResponse
@@ -14,7 +15,8 @@ from astrbot.api.star import Context, Star
 from astrbot.core.utils import astrbot_path
 
 from .config import PluginConfig
-from .renderer import Renderer, SecurityException
+from .exceptions import ConfigException, PluginErrorCode
+from .renderer import Renderer
 from .tools import JEMSSTool
 
 
@@ -36,7 +38,7 @@ class JEMSSPlugin(Star):
         self.data_path = Path(astrbot_path.get_astrbot_data_path()) / "plugin_data/astrbot_plugin_just_enough_mcserver_status"
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
-        logger.info(f"Plugin data path: {self.data_path}")
+        logger.info(f"Plugin data Path: {self.data_path}")
         # 加载配置
         self.verified_config = self._verify_config(config)
         logger.debug(f"Original Config: {json.dumps(config, ensure_ascii=False, indent=4)}")
@@ -51,10 +53,12 @@ class JEMSSPlugin(Star):
     def _verify_config(self, user_config: AstrBotConfig):
         try:
             return PluginConfig.model_validate(user_config)
-        except ValidationError as e:
-            logger.warning("Plugin Config error occurred.")
-            logger.warning("Default Config will be used to override.")
+        except (ConfigException, ValidationError) as e:
+            logger.warning(
+                f"[{PluginErrorCode.CFG_VALIDATION_FAILED}] Plugin config validation failed."
+            )
             logger.warning(f"{e}")
+            logger.warning("Falling back to default config.")
             return PluginConfig()
 
     async def initialize(self):
@@ -138,37 +142,54 @@ class JEMSSPlugin(Star):
         try:
             server = await JavaServer.async_lookup(server_address)
             server_status = await server.async_status()
-        except Exception as e:
-            logger.error(f"Can't get server information {server_address}")
-            logger.error(f"Error info: {e}")
+        # TODO:更细致的异常反馈，但是由于mcstatus现在异常处理过于粗略，暂且搁置
+        except gaierror as e:
+            logger.error(
+                f"[{PluginErrorCode.NET_DNS_RESOLUTION}] Cannot get address info: {e}"
+            )
             yield event.plain_result(
-                "无法获取服务器信息，请检查输入的服务器地址是否正确或者稍后重试"
+                "无法解析服务器地址\n\n"
+                "可能的原因：\n"
+                "• 服务器域名已过期或更改\n"
+                "• 输入的地址格式不正确\n"
+                "• 本地 DNS 解析服务异常\n"
+                "• 网络连接不可用\n\n"
+                "请检查服务器地址是否正确，或稍后重试"
+            )
+            return
+        except OSError as e:
+            logger.error(f"[{PluginErrorCode.NET_UNEXPECTED}] {e}")
+            yield event.plain_result(
+                "无法连接到服务器\n\n"
+                "可能的原因：\n"
+                "• 服务器未开启或正在重启\n"
+                "• 端口号错误或未开放\n"
+                "• 服务器已开启但被防火墙拦截\n"
+                "• 该端口并非 Minecraft Java 版服务\n"
+                "• 网络连接不稳定或超时\n\n"
+                "请稍后重试，或核对服务器地址与端口号是否正确"
             )
             return
 
         # 信息图片渲染
-        try:
-            info_pic = self.renderer.server_info_render(
-                server, server_status, event, server_name
-            )
-            # 消息输出信息图片和文字
-            # HACK: 这里为了排版增加了零宽字符\u200b，但这样对复制不友好，目前尚未想好解决办法
-            yield event.image_result(info_pic)
-            yield event.plain_result(
-                f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
-                f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
-                f"• 延迟: {round(server_status.latency, 2)}ms\n"
-                f"• DNS(SRV) 解析: {server.address.host}:{server.address.port}\n"
-                f"• motd: \n"
-                "```text\n"
-                f"\u200b{server_status.motd.to_plain()}\u200b\n"
-                "```"
-            )
+        info_pic = self.renderer.server_info_render(
+            server, server_status, event, server_name
+        )
+        # 消息输出信息图片和文字
+        # HACK: 这里为了排版增加了零宽字符\u200b，但这样对复制不友好，目前尚未想好解决办法
+        yield event.image_result(info_pic)
+        yield event.plain_result(
+            f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
+            f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
+            f"• 延迟: {round(server_status.latency, 2)}ms\n"
+            f"• DNS(SRV) 解析: {server.address.host}:{server.address.port}\n"
+            f"• motd: \n"
+            "```text\n"
+            f"\u200b{server_status.motd.to_plain()}\u200b\n"
+            "```"
+        )
 
-            logger.info(server_status.motd.to_plain())
-        except SecurityException:
-            yield event.plain_result("自定义背景设置失败，请检查配置")
-
+        logger.info(server_status.motd.to_plain())
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""

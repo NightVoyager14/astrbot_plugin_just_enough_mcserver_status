@@ -47,6 +47,10 @@
 - [mcstatus](https://github.com/py-mine/mcstatus) 提供的Minecraft服务器查询与数据解析实现  
 - [AstrBot](https://github.com/AstrBotDevs/AstrBot) 提供的优秀机器人框架  
 
+## 附录
+
+- [错误码查询手册](docs/ERROR_CODES.md)
+
 <div align="center">
 <img src="https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/images/watashiwa-koseino-desukara.gif" width="100"/>
 

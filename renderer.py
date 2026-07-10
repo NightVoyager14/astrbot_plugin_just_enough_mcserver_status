@@ -15,12 +15,9 @@ from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent
 
 from .config import PluginConfig
+from .exceptions import PluginErrorCode, SecurityException
 from .motdinfo import JAVA_COLORS, JAVA_FORMATS, JavaFormatting, JavaMinecraftColor
 
-
-# TODO:完善错误处理
-class SecurityException(Exception):
-    pass
 
 class Renderer:
     """实现MOTD的渲染逻辑"""
@@ -130,11 +127,10 @@ class Renderer:
         for old_file in old_files:
             try:
                 os.remove(old_file)
-            except Exception as e:
-                logger.warning(f"Cannot remove tempfile: {old_file}")
-                logger.warning(f"Reason: {e}")
-                logger.warning("You can delete it by yourself.")
-        logger.info(datetime.now())
+            except PermissionError:
+                logger.warning(
+                    f"[{PluginErrorCode.RND_TEMP_CLEAN}] No permission to access the file."
+                )
         pic_temp_path = (
             self.temp_path
             / f"JEMSSPlugin_temp_img_{session_id}_{datetime.now().strftime('%y%m%d%H%M%S%f')}.png"
@@ -154,18 +150,32 @@ class Renderer:
         ):
             # 防止路径穿越
             # TODO:自动回退为默认与错误带代码和文档设置
-            user_background_path = self.data_path.joinpath(random.choice(self.config.info_card.background.upload)).resolve()
-            if not user_background_path.is_relative_to(self.data_path.resolve()):
-                logger.error("Directory Traversal Attack is occured.")
-                raise SecurityException
+            user_background_path = self.data_path.joinpath(
+                random.choice(self.config.info_card.background.upload)
+            ).resolve()
             try:
+                if not user_background_path.is_relative_to(self.data_path.resolve()):
+                    raise SecurityException(
+                        PluginErrorCode.SEC_PATH_TRAVERSAL,
+                        "Directory Traversal is blocked.",
+                    )
                 user_background = Image.open(user_background_path).resize((1248, 144))
                 pic.paste(user_background, (0, 0))
             except FileNotFoundError:
-                logger.warning("Can not find the background file, please check your config and background picture.")
+                logger.warning(
+                    f"[{PluginErrorCode.RND_BACKGROUND_LOAD}] Can not find the background file."
+                )
+                logger.warning("Now reverting to the default background.")
                 pic.paste(self.default_background, (0, 0))
             except UnidentifiedImageError:
-                logger.warning("Can not open the background file, please check your background file.")
+                logger.warning(
+                    f"[{PluginErrorCode.RND_BACKGROUND_LOAD}] Can not open and identify the background file"
+                )
+                logger.warning("Now reverting to the default background.")
+                pic.paste(self.default_background, (0, 0))
+            except SecurityException as e:
+                logger.error(f"[{e.code}] {e.message}")
+                logger.error("Now reverting to the default background.")
                 pic.paste(self.default_background, (0, 0))
         else:
             pic.paste(self.default_background, (0, 0))

@@ -1,5 +1,7 @@
 from pydantic import BaseModel, model_validator
 
+from .exceptions import ConfigException, PluginErrorCode
+
 
 class PingThresholdsConfig(BaseModel):
     excellent: int = 50
@@ -10,8 +12,9 @@ class PingThresholdsConfig(BaseModel):
     @model_validator(mode="after")
     def check_order(self) -> "PingThresholdsConfig":
         if not (self.excellent < self.good < self.medium < self.bad):
-            raise ValueError(
-                "Config item ping_indicator's ping_thresholds has wrong order.The order must be excellent < good < medium < bad"
+            raise ConfigException(
+                PluginErrorCode.CFG_VALIDATION_FAILED,
+                "Config item ping_indicator's ping_thresholds has wrong order.The order must be excellent < good < medium < bad",
             )
         return self
 
