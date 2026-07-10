@@ -2,9 +2,13 @@
 
 ## [v1.1.0] - 2026-07-10
 
+### Breaking changes
+
+- 更换了配置文件管理系统，现使用AstrBot框架提供的Config管理接口
+- 删除了原来的配置文件 `config.toml`
+
 ### Added
 
-- 添加了使用AstrBot框架提供的Config管理接口的配置系统
 - 简单添加了信息卡片的各个元素的配置项
 - 用Markdown美化文本输出格式
 - 添加错误码文档
@@ -18,7 +22,6 @@
 
 ### Removed
 
-- 删除了原来的配置文件 `config.toml`
 - 删除了依赖项 `tomlkit`
 
 **Diff**: <https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/compare/v1.0.1...v1.1.0>
