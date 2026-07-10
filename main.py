@@ -21,6 +21,7 @@ from .tools import JEMSSTool
 
 
 class JEMSSPlugin(Star):
+    # TODO:改进Metadata与程序版本的同步
     __version__ = "v1.0.1"
 
     def __init__(self, context: Context, config: AstrBotConfig):
@@ -75,10 +76,11 @@ class JEMSSPlugin(Star):
         user_name = event.get_sender_name()
 
         yield event.plain_result(
-            f"Hello {user_name}\n"
-            "Welcome to use AstrBot plugin Just Enough McServer Status\n"
+            f"你好 {user_name}\n"
+            "欢迎使用 AstrBot plugin Just Enough McServer Status\n"
             f"Version: {self.__version__}\n"
-            "License: AGPL-3.0 license https://www.gnu.org/licenses/agpl-3.0"
+            "License: AGPL-3.0 license https://www.gnu.org/licenses/agpl-3.0\n"
+            "Repo: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status\n"
         )
 
     @jemss.command("help")
@@ -148,25 +150,29 @@ class JEMSSPlugin(Star):
                 f"[{PluginErrorCode.NET_DNS_RESOLUTION}] Cannot get address info: {e}"
             )
             yield event.plain_result(
-                "无法解析服务器地址\n\n"
+                "无法解析服务器地址\n"
+                "--------------------------\n"
                 "可能的原因：\n"
-                "• 服务器域名已过期或更改\n"
-                "• 输入的地址格式不正确\n"
-                "• 本地 DNS 解析服务异常\n"
-                "• 网络连接不可用\n\n"
+                "- 服务器域名已过期或更改\n"
+                "- 输入的地址格式不正确\n"
+                "- 本地 DNS 解析服务异常\n"
+                "- 网络连接不可用\n"
+                "--------------------------\n"
                 "请检查服务器地址是否正确，或稍后重试"
             )
             return
         except OSError as e:
             logger.error(f"[{PluginErrorCode.NET_UNEXPECTED}] {e}")
             yield event.plain_result(
-                "无法连接到服务器\n\n"
+                "无法连接到服务器\n"
+                "--------------------------\n"
                 "可能的原因：\n"
-                "• 服务器未开启或正在重启\n"
-                "• 端口号错误或未开放\n"
-                "• 服务器已开启但被防火墙拦截\n"
-                "• 该端口并非 Minecraft Java 版服务\n"
-                "• 网络连接不稳定或超时\n\n"
+                "- 服务器未开启或正在重启\n"
+                "- 端口号错误或未开放\n"
+                "- 服务器已开启但被防火墙拦截\n"
+                "- 该端口并非 Minecraft Java 版服务\n"
+                "- 网络连接不稳定或超时\n\n"
+                "--------------------------\n"
                 "请稍后重试，或核对服务器地址与端口号是否正确"
             )
             return
@@ -176,16 +182,22 @@ class JEMSSPlugin(Star):
             server, server_status, event, server_name
         )
         # 消息输出信息图片和文字
-        # HACK: 这里为了排版增加了零宽字符\u200b，但这样对复制不友好，目前尚未想好解决办法
+        motd_text = server_status.motd.to_plain()
+        display_name = server_name or server_address
+
         yield event.image_result(info_pic)
+        # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前认为想到解决办法
         yield event.plain_result(
-            f"• 服务器版本: {server_status.version.name}(协议版本:{server_status.version.protocol})\n"
-            f"• 游玩人数: {server_status.players.online}/{server_status.players.max}\n"
-            f"• 延迟: {round(server_status.latency, 2)}ms\n"
-            f"• DNS(SRV) 解析: {server.address.host}:{server.address.port}\n"
-            f"• motd: \n"
-            "```text\n"
-            f"\u200b{server_status.motd.to_plain()}\u200b\n"
+            f"## {display_name} \n\n"
+            "| 项目 | 状态 |\n"
+            "| :--- | :--- |\n"
+            f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
+            f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
+            f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
+            f"| **解析地址** | {server.address.host}:{server.address.port} |\n"
+            "### MOTD\n"
+            "```text \n"
+            f"\u200b{motd_text}\n"
             "```"
         )
 
