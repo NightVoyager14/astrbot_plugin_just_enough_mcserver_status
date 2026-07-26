@@ -99,23 +99,23 @@ class Renderer:
         self._set_background(pic)
 
         # 添加服务器标题
-        if self.config.info_card.title.isEnabled:
+        if self.config.info_card.title.is_enabled:
             self._add_server_title(title, server, pic_drawer)
 
         # 添加服务器图标
-        if self.config.info_card.icon.isEnabled:
+        if self.config.info_card.icon.is_enabled:
             self._add_server_icon(status, pic)
 
         # 添加延迟显示
-        if self.config.info_card.ping_indicator.isEnabled:
+        if self.config.info_card.ping_indicator.is_enabled:
             self._add_ping_indicator(status, pic)
 
         # 添加在线人数显示
-        if self.config.info_card.player_count.isEnabled:
+        if self.config.info_card.player_count.is_enabled:
             self._add_player_count(status, pic_drawer)
 
         # 解析motd
-        if self.config.info_card.motd.isEnabled:
+        if self.config.info_card.motd.is_enabled:
             motd = status.motd.parsed
             self._add_motd(motd, pic_drawer)
 
@@ -145,7 +145,7 @@ class Renderer:
     # TODO:更加完善的自定义背景机制
     def _set_background(self, pic: Image.Image):
         if (
-            self.config.info_card.background.isCustomEnabled
+            self.config.info_card.background.is_custom_enabled
             and self.config.info_card.background.upload
         ):
             # 防止路径穿越
@@ -269,6 +269,9 @@ class Renderer:
         current_underlined = False
         current_obfuscated = False
         current_font = self.font_motd_regular
+        # 计算基本常量
+        regular_motd_box = pic_drawer.textbbox((0, 0), "你好！Great, you have a Minecraft world.", current_font)
+        regular_motd_line_height = regular_motd_box[3] - regular_motd_box[1]
         # 开始渲染
         for component in motd:
             logger.debug(f"{component} | {isinstance(component, str)}")
@@ -277,8 +280,6 @@ class Renderer:
                 # 处理有换行符的情况
                 if "\n" in component:
                     component_multiline = component.split("\n")
-                    box = pic_drawer.textbbox((0, 0), "你好！Great, you have a Minecraft world.", current_font)
-                    line_height = box[3] - box[1]
                     for line_num in range(len(component_multiline)):
                         pic_drawer.text(
                             (current_x, current_y),
@@ -303,7 +304,7 @@ class Renderer:
                             )
                             current_x += current_length
                             continue
-                        current_y = current_y + line_height + self.config.info_card.motd.leading
+                        current_y = current_y + regular_motd_line_height + self.config.info_card.motd.leading
                         current_x = initial_position[0]
                 else:
                     pic_drawer.text(

@@ -4,13 +4,13 @@
     "type": "object",
     "hint": "插件通用配置",
     "items": {
-      "isInfoCardEnabled": {
+      "is_info_card_enabled": {
         "description": "信息卡片渲染",
         "type": "bool",
         "hint": "是否开启信息卡片的渲染",
         "default": true
       },
-      "isInfoTextEnabled": {
+      "is_info_text_enabled": {
         "description": "文字信息输出",
         "type": "bool",
         "hint": "是否开启文字信息的输出",
@@ -23,7 +23,7 @@
     "type": "object",
     "hint": "聊天文字信息相关配置",
     "items": {
-      "isMarkdownEnabled":{
+      "is_markdown_enabled":{
         "description": "Markdown格式输出",
         "type": "bool",
         "hint":"是否启用Markdown格式以美化文字信息输出（注：如果平台不支持Markdown渲染，可以关闭此项）",
@@ -41,7 +41,7 @@
         "type": "object",
         "hint": "延迟展示器的相关配置",
         "items": {
-          "isEnabled": {
+          "is_enabled": {
             "description": "延迟指示器显示",
             "hint": "是否开启延迟指示器在信息卡片中渲染",
             "type": "bool",
@@ -85,7 +85,7 @@
         "type": "object",
         "hint": "服务器图标相关配置",
         "items": {
-          "isEnabled": {
+          "is_enabled": {
             "description": "服务器图标显示",
             "hint": "是否开启服务器图标在信息卡片中渲染",
             "type": "bool",
@@ -98,7 +98,7 @@
         "type": "object",
         "hint": "服务器标题相关配置",
         "items": {
-          "isEnabled": {
+          "is_enabled": {
             "description": "标题显示",
             "hint": "是否开启服务器标题在信息卡片中渲染",
             "type": "bool",
@@ -111,7 +111,7 @@
         "type": "object",
         "hint": "服务器MOTD相关配置",
         "items": {
-          "isEnabled": {
+          "is_enabled": {
             "description": "MOTD显示",
             "hint": "是否开启服务器MOTD在信息卡片中渲染",
             "type": "bool",
@@ -130,7 +130,7 @@
         "type": "object",
         "hint": "服务器在线人数相关配置",
         "items": {
-          "isEnabled": {
+          "is_enabled": {
             "description": "在线人数显示",
             "hint": "是否开启服务器在线人数在信息卡片中渲染",
             "type": "bool",
@@ -143,7 +143,7 @@
         "type": "object",
         "hint": "信息卡片背景相关配置",
         "items": {
-          "isEnabled": {
+          "is_custom_enabled": {
             "description": "自定义背景",
             "hint": "是否启用自定义的背景，若关闭则自动使用默认背景",
             "type": "bool",

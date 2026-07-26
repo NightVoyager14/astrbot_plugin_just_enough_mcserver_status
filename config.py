@@ -4,8 +4,8 @@ from .exceptions import ConfigException, PluginErrorCode
 
 
 class GeneralConfig(BaseModel):
-    isInfoCardEnabled: bool = True
-    isInfoTextEnabled: bool = True
+    is_info_card_enabled: bool = True
+    is_info_text_enabled: bool = True
 
 
 class PingThresholdsConfig(BaseModel):
@@ -25,29 +25,29 @@ class PingThresholdsConfig(BaseModel):
 
 
 class PingIndicatorConfig(BaseModel):
-    isEnabled: bool = True
+    is_enabled: bool = True
     ping_thresholds: PingThresholdsConfig = PingThresholdsConfig()
 
 
 class IconConfig(BaseModel):
-    isEnabled: bool = True
+    is_enabled: bool = True
 
 
 class TitleConfig(BaseModel):
-    isEnabled: bool = True
+    is_enabled: bool = True
 
 
 class MotdConfig(BaseModel):
-    isEnabled: bool = True
+    is_enabled: bool = True
     leading: int = 10
 
 
 class PlayerCountConfig(BaseModel):
-    isEnabled: bool = True
+    is_enabled: bool = True
 
 
 class BackgroundConfig(BaseModel):
-    isCustomEnabled: bool = False
+    is_custom_enabled: bool = False
     upload: list[str] = []
 
 
@@ -61,7 +61,7 @@ class InfoCardConfig(BaseModel):
 
 
 class TextInfoConfig(BaseModel):
-    isMarkdownEnabled: bool = True
+    is_markdown_enabled: bool = True
 
 
 class PluginConfig(BaseModel):

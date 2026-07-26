@@ -178,7 +178,7 @@ class JEMSSPlugin(Star):
             return
 
         # 信息图片渲染
-        if self.verified_config.general.isInfoCardEnabled:
+        if self.verified_config.general.is_info_card_enabled:
             info_pic = self.renderer.server_info_render(
                 server, server_status, event, server_name
             )
@@ -188,8 +188,8 @@ class JEMSSPlugin(Star):
         motd_text = server_status.motd.to_plain()
         display_name = server_name or server_address
 
-        if self.verified_config.general.isInfoTextEnabled:
-            if self.verified_config.text_info.isMarkdownEnabled:
+        if self.verified_config.general.is_info_text_enabled:
+            if self.verified_config.text_info.is_markdown_enabled:
                 # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前认为想到解决办法
                 yield event.plain_result(
                     f"## {display_name} \n\n"
@@ -219,8 +219,8 @@ class JEMSSPlugin(Star):
             logger.info(server_status.motd.to_plain())
 
         if (
-            not self.verified_config.general.isInfoCardEnabled
-            and not self.verified_config.general.isInfoTextEnabled
+            not self.verified_config.general.is_info_card_enabled
+            and not self.verified_config.general.is_info_text_enabled
         ):
             logger.warning(
                 f"[{PluginErrorCode.CFG_EMPTY_OUTPUT}] Both info card generation and text output are disabled in the plugin configuration. As a result, the plugin will produce no visible output."
