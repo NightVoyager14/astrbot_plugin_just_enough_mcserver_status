@@ -57,7 +57,6 @@ class JEMSSTool(FunctionTool[AstrAgentContext]):
                     {player.name: player.id} for player in server_status.players.sample
                 ]
             if server_status.forge_data:
-                logger.error(server_status.forge_data.channels)
                 tool_result["modinfo"] = {
                     "fml_network_version": server_status.forge_data.fml_network_version,
                     "mods": [
