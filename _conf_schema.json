@@ -18,6 +18,19 @@
       }
     }
   },
+  "text_info":{
+    "description": "文字信息",
+    "type": "object",
+    "hint": "聊天文字信息相关配置",
+    "items": {
+      "isMarkdownEnabled":{
+        "description": "Markdown格式输出",
+        "type": "bool",
+        "hint":"是否启用Markdown格式以美化文字信息输出（注：如果平台不支持Markdown渲染，可以关闭此项）",
+        "default": true
+      }
+    }
+  },
   "info_card": {
     "description": "信息卡片",
     "type": "object",
@@ -103,6 +116,12 @@
             "hint": "是否开启服务器MOTD在信息卡片中渲染",
             "type": "bool",
             "default": true
+          },
+          "leading":{
+            "description": "行间距",
+            "hint": "MOTD渲染行间距（单位：px）",
+            "type": "int",
+            "default": 10
           }
         }
       },

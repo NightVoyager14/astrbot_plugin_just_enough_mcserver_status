@@ -189,26 +189,45 @@ class JEMSSPlugin(Star):
         display_name = server_name or server_address
 
         if self.verified_config.general.isInfoTextEnabled:
-            # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前认为想到解决办法
-            yield event.plain_result(
-                f"## {display_name} \n\n"
-                "| 项目 | 状态 |\n"
-                "| :--- | :--- |\n"
-                f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
-                f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
-                f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
-                f"| **解析地址** | {server.address.host}:{server.address.port} |\n"
-                "### MOTD\n"
-                "```text \n"
-                f"\u200b{motd_text}\n"
-                "```"
-            )
+            if self.verified_config.text_info.isMarkdownEnabled:
+                # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前认为想到解决办法
+                yield event.plain_result(
+                    f"## {display_name} \n\n"
+                    "| 项目 | 状态 |\n"
+                    "| :--- | :--- |\n"
+                    f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
+                    f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
+                    f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
+                    f"| **解析地址** | {server.address.host}:{server.address.port} |\n"
+                    "### MOTD\n"
+                    "```text \n"
+                    f"\u200b{motd_text}\n"
+                    "```"
+                )
+            else:
+                yield event.plain_result(
+                    f"🖥  {display_name}\n"
+                    "═══════════════════════════\n"
+                    f"📋  服务器版本：{server_status.version.name}（协议 {server_status.version.protocol}）\n"
+                    f"👥  在线人数：{server_status.players.online} / {server_status.players.max}\n"
+                    f"⚡  延   迟：{round(server_status.latency, 2)} ms\n"
+                    f"🌐  解析地址：{server.address.host}:{server.address.port}\n"
+                    f"💬  MOTD：\n{motd_text}\n"
+                    "═══════════════════════════"
+                )
 
             logger.info(server_status.motd.to_plain())
 
-        if not self.verified_config.general.isInfoCardEnabled and not self.verified_config.general.isInfoTextEnabled:
-            logger.warning(f"[{PluginErrorCode.CFG_EMPTY_OUTPUT}] Both info card generation and text output are disabled in the plugin configuration. As a result, the plugin will produce no visible output.")
-            yield event.plain_result("请检查插件配置，其中中信息卡片渲染与信息文字输出都被禁用，这会导致插件无法产生任何有用的输出。")
+        if (
+            not self.verified_config.general.isInfoCardEnabled
+            and not self.verified_config.general.isInfoTextEnabled
+        ):
+            logger.warning(
+                f"[{PluginErrorCode.CFG_EMPTY_OUTPUT}] Both info card generation and text output are disabled in the plugin configuration. As a result, the plugin will produce no visible output."
+            )
+            yield event.plain_result(
+                "请检查插件配置，其中中信息卡片渲染与信息文字输出都被禁用，这会导致插件无法产生任何有用的输出。"
+            )
             yield event.plain_result("如果你是不是管理员，请将以上文本发送给Bot管理员")
 
     async def terminate(self):

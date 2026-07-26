@@ -39,6 +39,7 @@ class TitleConfig(BaseModel):
 
 class MotdConfig(BaseModel):
     isEnabled: bool = True
+    leading: int = 10
 
 
 class PlayerCountConfig(BaseModel):
@@ -59,6 +60,11 @@ class InfoCardConfig(BaseModel):
     background: BackgroundConfig = BackgroundConfig()
 
 
+class TextInfoConfig(BaseModel):
+    isMarkdownEnabled: bool = True
+
+
 class PluginConfig(BaseModel):
     general: GeneralConfig = GeneralConfig()
+    text_info: TextInfoConfig = TextInfoConfig()
     info_card: InfoCardConfig = InfoCardConfig()

@@ -277,6 +277,8 @@ class Renderer:
                 # 处理有换行符的情况
                 if "\n" in component:
                     component_multiline = component.split("\n")
+                    box = pic_drawer.textbbox((0, 0), "你好！Great, you have a Minecraft world.", current_font)
+                    line_height = box[3] - box[1]
                     for line_num in range(len(component_multiline)):
                         pic_drawer.text(
                             (current_x, current_y),
@@ -301,7 +303,7 @@ class Renderer:
                             )
                             current_x += current_length
                             continue
-                        current_y = current_y + 30
+                        current_y = current_y + line_height + self.config.info_card.motd.leading
                         current_x = initial_position[0]
                 else:
                     pic_drawer.text(
