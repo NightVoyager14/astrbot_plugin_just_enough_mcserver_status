@@ -99,23 +99,23 @@ class Renderer:
         self._set_background(pic)
 
         # 添加服务器标题
-        if self.config.info_card.title.enabled:
+        if self.config.info_card.title.isEnabled:
             self._add_server_title(title, server, pic_drawer)
 
         # 添加服务器图标
-        if self.config.info_card.icon.enabled:
+        if self.config.info_card.icon.isEnabled:
             self._add_server_icon(status, pic)
 
         # 添加延迟显示
-        if self.config.info_card.ping_indicator.enabled:
+        if self.config.info_card.ping_indicator.isEnabled:
             self._add_ping_indicator(status, pic)
 
         # 添加在线人数显示
-        if self.config.info_card.player_count.enabled:
+        if self.config.info_card.player_count.isEnabled:
             self._add_player_count(status, pic_drawer)
 
         # 解析motd
-        if self.config.info_card.motd.enabled:
+        if self.config.info_card.motd.isEnabled:
             motd = status.motd.parsed
             self._add_motd(motd, pic_drawer)
 
@@ -145,7 +145,7 @@ class Renderer:
     # TODO:更加完善的自定义背景机制
     def _set_background(self, pic: Image.Image):
         if (
-            self.config.info_card.background.enabled
+            self.config.info_card.background.isCustomEnabled
             and self.config.info_card.background.upload
         ):
             # 防止路径穿越

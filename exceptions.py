@@ -9,6 +9,7 @@ class PluginErrorCode(StrEnum):
 
     # CONFIG 配置类
     CFG_VALIDATION_FAILED = "CFG001"
+    CFG_EMPTY_OUTPUT = "CFG002"
 
     # RENDER 渲染类
     RND_TEMP_CLEAN = "RND003"

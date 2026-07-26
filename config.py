@@ -3,6 +3,11 @@ from pydantic import BaseModel, model_validator
 from .exceptions import ConfigException, PluginErrorCode
 
 
+class GeneralConfig(BaseModel):
+    isInfoCardEnabled: bool = True
+    isInfoTextEnabled: bool = True
+
+
 class PingThresholdsConfig(BaseModel):
     excellent: int = 50
     good: int = 100
@@ -20,28 +25,28 @@ class PingThresholdsConfig(BaseModel):
 
 
 class PingIndicatorConfig(BaseModel):
-    enabled: bool = True
+    isEnabled: bool = True
     ping_thresholds: PingThresholdsConfig = PingThresholdsConfig()
 
 
 class IconConfig(BaseModel):
-    enabled: bool = True
+    isEnabled: bool = True
 
 
 class TitleConfig(BaseModel):
-    enabled: bool = True
+    isEnabled: bool = True
 
 
 class MotdConfig(BaseModel):
-    enabled: bool = True
+    isEnabled: bool = True
 
 
 class PlayerCountConfig(BaseModel):
-    enabled: bool = True
+    isEnabled: bool = True
 
 
 class BackgroundConfig(BaseModel):
-    enabled: bool = False
+    isCustomEnabled: bool = False
     upload: list[str] = []
 
 
@@ -55,4 +60,5 @@ class InfoCardConfig(BaseModel):
 
 
 class PluginConfig(BaseModel):
+    general: GeneralConfig = GeneralConfig()
     info_card: InfoCardConfig = InfoCardConfig()
