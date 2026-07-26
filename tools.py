@@ -27,9 +27,8 @@ class JEMSSTool(FunctionTool[AstrAgentContext]):
         }
     )
 
-    """
-    TODO:说不定以后可以实现模组查询
-    """
+
+    # TODO:目前由于依赖库限制，只支持Forge的mods查询
     async def call(
         self, context: ContextWrapper[AstrAgentContext], **kwargs
     ) -> ToolExecResult:
@@ -58,9 +57,9 @@ class JEMSSTool(FunctionTool[AstrAgentContext]):
                     {player.name: player.id} for player in server_status.players.sample
                 ]
             if server_status.forge_data:
+                logger.error(server_status.forge_data.channels)
                 tool_result["modinfo"] = {
                     "fml_network_version": server_status.forge_data.fml_network_version,
-                    "channels": server_status.forge_data.channels,
                     "mods": [
                         {"name": mod.name, "marker": mod.marker}
                         for mod in server_status.forge_data.mods

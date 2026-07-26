@@ -49,7 +49,7 @@ class Renderer:
         self.font_player = ImageFont.truetype(
             plugin_path / "fonts/minecraft.ttf", size=30
         )
-        # 加载贴图
+        # 加载默认贴图
         self.default_background = Image.open(
             self.plugin_path / "assets/background_dark.png"
         )
