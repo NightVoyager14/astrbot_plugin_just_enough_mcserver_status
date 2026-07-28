@@ -18,15 +18,53 @@
       }
     }
   },
-  "text_info":{
+  "quick_ping": {
+    "description": "快捷查询",
+    "hint": "快捷查询指令（/jeping quick）相关配置",
+    "type": "object",
+    "items": {
+      "servers": {
+        "description": "预设服务器",
+        "type": "template_list",
+        "hint": "快捷查询服务器预设",
+        "templates": {
+          "server": {
+            "name": "预设服务器模板",
+            "hint": "快捷查询服务器预设模板",
+            "display_item": "quick_name",
+            "hide_hint_in_list": true,
+            "items": {
+              "quick_name": {
+                "description": "快捷查询名称",
+                "hint": "在快捷查询时使用的服务器名称",
+                "type": "string",
+                "default": "server"
+              },
+              "address": {
+                "description": "服务器地址",
+                "hint": "同status指令中一样，格式为 <服务器地址[:服务器端口]>",
+                "type": "string"
+              },
+              "display_name": {
+                "description": "展示服务器名称",
+                "type": "string",
+                "hint": "设置在信息卡片中和文字信息输出中展示的服务器名称，如果不填写为空，则显示为SRV解析地址"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "text_info": {
     "description": "文字信息",
     "type": "object",
     "hint": "聊天文字信息相关配置",
     "items": {
-      "is_markdown_enabled":{
+      "is_markdown_enabled": {
         "description": "Markdown格式输出",
         "type": "bool",
-        "hint":"是否启用Markdown格式以美化文字信息输出（注：如果平台不支持Markdown渲染，可以关闭此项）",
+        "hint": "是否启用Markdown格式以美化文字信息输出（注：如果平台不支持Markdown渲染，可以关闭此项）",
         "default": true
       }
     }
@@ -117,7 +155,7 @@
             "type": "bool",
             "default": true
           },
-          "leading":{
+          "leading": {
             "description": "行间距",
             "hint": "MOTD渲染行间距（单位：px）",
             "type": "int",

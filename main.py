@@ -1,5 +1,7 @@
+import ipaddress
 import json
 import random
+import re
 from pathlib import Path
 from socket import gaierror
 
@@ -30,10 +32,7 @@ class JEMSSPlugin(Star):
         # 注册插件
         self.context.add_llm_tools(JEMSSTool())
         # 获取并检查基本路径
-        self.plugin_path = (
-            Path(astrbot_path.get_astrbot_plugin_path())
-            / "astrbot_plugin_just_enough_mcserver_status"
-        )
+        self.plugin_path = (Path(astrbot_path.get_astrbot_plugin_path()) / "astrbot_plugin_just_enough_mcserver_status")
         self.temp_path = Path(astrbot_path.get_astrbot_temp_path()) / "JEMSSPlugin_temp_pics"
         self.temp_path.mkdir(exist_ok=True)
         self.data_path = Path(astrbot_path.get_astrbot_data_path()) / "plugin_data/astrbot_plugin_just_enough_mcserver_status"
@@ -44,6 +43,11 @@ class JEMSSPlugin(Star):
         self.verified_config = self._verify_config(config)
         logger.debug(f"Original Config: {json.dumps(config, ensure_ascii=False, indent=4)}")
         logger.debug(f"Verified Config: {self.verified_config.model_dump_json(indent=4)}")
+        # 加载quick_name查询索引
+        self.quick_name_index = {
+            self.verified_config.quick_ping.servers[index]["quick_name"]: index
+            for index in range(len(self.verified_config.quick_ping.servers))
+        }
         # 加载渲染器
         self.renderer = Renderer(self.plugin_path, self.verified_config, self.temp_path, self.data_path)
         # 加载其他资源
@@ -54,10 +58,13 @@ class JEMSSPlugin(Star):
     def _verify_config(self, user_config: AstrBotConfig):
         try:
             return PluginConfig.model_validate(user_config)
-        except (ConfigException, ValidationError) as e:
-            logger.warning(
-                f"[{PluginErrorCode.CFG_VALIDATION_FAILED}] Plugin config validation failed."
-            )
+        except ConfigException as e:
+            logger.warning(f"[{e.code}] Plugin config validation failed.")
+            logger.warning(f"{e}")
+            logger.warning("Falling back to default config.")
+            return PluginConfig()
+        except ValidationError as e:
+            logger.warning("[VALIDATION_ERROR] Plugin config validation failed.")
             logger.warning(f"{e}")
             logger.warning("Falling back to default config.")
             return PluginConfig()
@@ -125,20 +132,42 @@ class JEMSSPlugin(Star):
         """查询Minecraft服务器有关信息"""
         pass
 
-    """
-    TODO:什么时候把基岩版的查询加上
-    """
+    @jeping.command("quick")
+    async def quick(self, event: AstrMessageEvent, quick_name: str):
+        if quick_name in self.quick_name_index.keys():
+            server = self.verified_config.quick_ping.servers[
+                self.quick_name_index[quick_name]
+            ]
+        else:
+            logger.warning(
+                f"{PluginErrorCode.INP_INVALID_QUICK_NAME} Invalid quick name."
+            )
+            yield event.plain_result("无效的快捷名称")
+            return
+        async for result in self._get_status(
+            event, server["address"], server["display_name"]
+        ):
+            yield result
 
+    # TODO:什么时候把基岩版的查询加上
     @jeping.command("status")
-    async def get_status(
+    async def status(
         self,
         event: AstrMessageEvent,
         server_address: str,
         server_name: str | None = None,
     ):
         """获取JE服务器状态 参数：/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
-        # 用户输入处理
-        server_address = server_address.strip()
+        async for result in self._get_status(event, server_address, server_name):
+            yield result
+
+    async def _get_status(
+        self,
+        event: AstrMessageEvent,
+        server_address: str,
+        server_name: str | None = None,
+    ):
+        """实现服务器信息查询与渲染"""
 
         # 服务器信息获取
         try:
@@ -190,7 +219,7 @@ class JEMSSPlugin(Star):
 
         if self.verified_config.general.is_info_text_enabled:
             if self.verified_config.text_info.is_markdown_enabled:
-                # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前认为想到解决办法
+                # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前仍未想到解决办法
                 yield event.plain_result(
                     f"## {display_name} \n\n"
                     "| 项目 | 状态 |\n"
@@ -226,9 +255,9 @@ class JEMSSPlugin(Star):
                 f"[{PluginErrorCode.CFG_EMPTY_OUTPUT}] Both info card generation and text output are disabled in the plugin configuration. As a result, the plugin will produce no visible output."
             )
             yield event.plain_result(
-                "请检查插件配置，其中中信息卡片渲染与信息文字输出都被禁用，这会导致插件无法产生任何有用的输出。"
+                "请检查插件配置，其中信息卡片渲染与信息文字输出均被禁用，这会导致插件无法产生任何有用的输出。"
             )
-            yield event.plain_result("如果你是不是管理员，请将以上文本发送给Bot管理员")
+            yield event.plain_result("如果你并非管理员，请将以上提示信息转发给管理员")
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""

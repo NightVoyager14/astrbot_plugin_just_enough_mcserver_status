@@ -83,6 +83,7 @@ class Renderer:
     """
     TODO:渐变色一类的webcolor支持
     TODO:随机代码支持
+    TODO:TranslationTag支持
     """
 
     def server_info_render(
