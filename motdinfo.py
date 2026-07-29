@@ -5,6 +5,7 @@ from mcstatus.motd.components import (
     BedrockMinecraftColor,
     JavaFormatting,
     JavaMinecraftColor,
+    WebColor,
 )
 
 

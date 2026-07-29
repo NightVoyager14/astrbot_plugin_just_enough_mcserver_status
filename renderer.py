@@ -16,7 +16,13 @@ from astrbot.api.event import AstrMessageEvent
 
 from .config import PluginConfig
 from .exceptions import PluginErrorCode, SecurityException
-from .motdinfo import JAVA_COLORS, JAVA_FORMATS, JavaFormatting, JavaMinecraftColor
+from .motdinfo import (
+    JAVA_COLORS,
+    JAVA_FORMATS,
+    JavaFormatting,
+    JavaMinecraftColor,
+    WebColor,
+)
 
 
 class Renderer:
@@ -81,7 +87,6 @@ class Renderer:
         # fmt:on
 
     """
-    TODO:渐变色一类的webcolor支持
     TODO:随机代码支持
     TODO:TranslationTag支持
     """
@@ -324,8 +329,11 @@ class Renderer:
                     current_length = pic_drawer.textlength(component, current_font)
                     current_x += current_length
             # 处理颜色符号
-            elif isinstance(component, JavaMinecraftColor):
-                current_color = JAVA_COLORS[component]["rgb"]
+            elif isinstance(component, (JavaMinecraftColor, WebColor)):
+                if isinstance(component, JavaMinecraftColor):
+                    current_color = JAVA_COLORS[component]["rgb"]
+                else:
+                    current_color = component.rgb
                 # JE特性：格式代码仅仅在颜色代码前生效
                 current_bold = False
                 current_italic = False

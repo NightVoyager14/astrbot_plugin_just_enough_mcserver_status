@@ -172,7 +172,8 @@ class JEMSSPlugin(Star):
         # 服务器信息获取
         try:
             server = await JavaServer.async_lookup(server_address)
-            server_status = await server.async_status()
+            # 这里由于mcstatus的默认协议版本为47，Velocity可能会将motd自动降级而不支持hex（webcolor）所以说这里设为26.2的协议版本776
+            server_status = await server.async_status(version=776)
         # TODO:更细致的异常反馈，但是由于mcstatus现在异常处理过于粗略，暂且搁置
         except gaierror as e:
             logger.error(
