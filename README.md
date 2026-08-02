@@ -26,7 +26,7 @@
 ### 指令
 
 - **`/jeping status <服务器地址[:端口]> [名称]`** — 获取 Java 版服务器状态（在线人数、MOTD、延迟等）
-- **`/jeping status`** — 快捷获取预设服务器信息
+- **`/jeping quick`** — 快捷获取预设服务器信息
 - **`/jemss version`** — 查看插件版本
 - **`/jemss splash`** — 随机获取一条启动标语
 - **`/jemss admin`** (管理员) — 管理员测试指令
