@@ -155,7 +155,6 @@ class Renderer:
             and self.config.info_card.background.upload
         ):
             # 防止路径穿越
-            # TODO:自动回退为默认与错误带代码和文档设置
             user_background_path = self.data_path.joinpath(
                 random.choice(self.config.info_card.background.upload)
             ).resolve()

@@ -134,6 +134,7 @@ class JEMSSPlugin(Star):
 
     @jeping.command("quick")
     async def quick(self, event: AstrMessageEvent, quick_name: str):
+        """快捷查询预设好的服务器"""
         if quick_name in self.quick_name_index.keys():
             server = self.verified_config.quick_ping.servers[
                 self.quick_name_index[quick_name]

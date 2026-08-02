@@ -1,5 +1,23 @@
 # Changelog
 
+## [v1.1.1] - 2026-08-02
+
+### Added
+
+- 添加多个配置项：图片输出与文字输出显示，MOTD行间距，快捷查询服务器预设
+- 增加了快捷查询功能
+- 添加了对WebColor以及渐变色渲染的支持
+
+### Changed
+
+- 统一并优化配置项函数及变量命名
+
+### Fixed
+
+- 修复由于ForgeDataChannel对象无法转换成json格式导致Agent Tool查询失败的问题
+
+**Diff**: <https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/compare/v1.1.0...v1.1.1>
+
 ## [v1.1.0] - 2026-07-10
 
 ### Breaking changes
@@ -51,6 +69,7 @@
 - Java Edition 服务器查询信息原版风格图片展示
 - Java Edition Splashes随机抽取
 
+[v1.1.1]: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/tree/v1.1.1
 [v1.1.0]: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/tree/v1.1.0
 [v1.0.1]: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/tree/v1.0.0
 [v1.0.0]: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/tree/v1.0.0
