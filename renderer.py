@@ -5,7 +5,7 @@ import random
 from datetime import datetime
 from pathlib import Path
 
-from mcstatus import JavaServer
+from mcstatus import BedrockServer, JavaServer
 from mcstatus.motd.components import ParsedMotdComponent
 from mcstatus.responses.bedrock import BedrockStatusResponse
 from mcstatus.responses.java import JavaStatusResponse
@@ -17,8 +17,10 @@ from astrbot.api.event import AstrMessageEvent
 from .config import PluginConfig
 from .exceptions import PluginErrorCode, SecurityException
 from .motdinfo import (
+    BEDROCK_COLORS,
     JAVA_COLORS,
-    JAVA_FORMATS,
+    BedrockFormatting,
+    BedrockMinecraftColor,
     JavaFormatting,
     JavaMinecraftColor,
     WebColor,
@@ -93,8 +95,8 @@ class Renderer:
 
     def server_info_render(
         self,
-        server: JavaServer,
-        status: JavaStatusResponse,
+        server: JavaServer | BedrockServer,
+        status: JavaStatusResponse | BedrockStatusResponse,
         event: AstrMessageEvent,
         title: str | None,
     ) -> str:
@@ -109,8 +111,10 @@ class Renderer:
             self._add_server_title(title, server, pic_drawer)
 
         # 添加服务器图标
-        if self.config.info_card.icon.is_enabled:
-            self._add_server_icon(status, pic)
+        # 基岩版没有服务器图标
+        if isinstance(status, JavaStatusResponse):
+            if self.config.info_card.icon.is_enabled:
+                self._add_server_icon(status, pic)
 
         # 添加延迟显示
         if self.config.info_card.ping_indicator.is_enabled:
@@ -123,7 +127,7 @@ class Renderer:
         # 解析motd
         if self.config.info_card.motd.is_enabled:
             motd = status.motd.parsed
-            self._add_motd(motd, pic_drawer)
+            self._add_motd(motd, pic_drawer, initial_position=(160, 60))
 
         # TODO:优化缓存
         # 设置缓存文件路径
@@ -197,7 +201,10 @@ class Renderer:
             pic.paste(self.unknown_icon, (20, 8), mask=self.unknown_icon)
 
     def _add_server_title(
-        self, title: str | None, server: JavaServer, pic_drawer: ImageDraw.ImageDraw
+        self,
+        title: str | None,
+        server: JavaServer | BedrockServer,
+        pic_drawer: ImageDraw.ImageDraw,
     ):
         """添加展示的标题"""
         if title:
@@ -214,7 +221,9 @@ class Renderer:
                 font=self.font_title,
             )
 
-    def _add_ping_indicator(self, status: JavaStatusResponse, pic: Image.Image):
+    def _add_ping_indicator(
+        self, status: JavaStatusResponse | BedrockStatusResponse, pic: Image.Image
+    ):
         """添加延迟图标"""
         if (
             status.latency
@@ -246,7 +255,9 @@ class Renderer:
             )
 
     def _add_player_count(
-        self, status: JavaStatusResponse, pic_drawer: ImageDraw.ImageDraw
+        self,
+        status: JavaStatusResponse | BedrockStatusResponse,
+        pic_drawer: ImageDraw.ImageDraw,
     ):
         """添加在线人数显示"""
         player_length = pic_drawer.textlength(
@@ -259,15 +270,18 @@ class Renderer:
             fill=(128, 128, 128),
         )
 
+    # TODO:这里要优化下Java版本与Bedrock版本的不同MOTD渲染的区分
     def _add_motd(
-        self, motd: list[ParsedMotdComponent], pic_drawer: ImageDraw.ImageDraw
+        self,
+        motd: list[ParsedMotdComponent],
+        pic_drawer: ImageDraw.ImageDraw,
+        initial_position: tuple[int, int] = (160, 60)
     ):
         """格式化渲染状态机"""
         # 设置状态机的状态
-        initial_position = (160, 60)
         current_x, current_y = initial_position
         current_length = 0
-        current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]
+        current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]   # 这里为了方便，统一用java的白色变量
         current_bold = False
         current_italic = False
         current_strikethrough = False
@@ -275,7 +289,9 @@ class Renderer:
         current_obfuscated = False
         current_font = self.font_motd_regular
         # 计算基本常量
-        regular_motd_box = pic_drawer.textbbox((0, 0), "你好！Great, you have a Minecraft world.", current_font)
+        regular_motd_box = pic_drawer.textbbox(
+            (0, 0), "你好！Great, you have a Minecraft world.", current_font
+        )
         regular_motd_line_height = regular_motd_box[3] - regular_motd_box[1]
         # 开始渲染
         for component in motd:
@@ -309,7 +325,11 @@ class Renderer:
                             )
                             current_x += current_length
                             continue
-                        current_y = current_y + regular_motd_line_height + self.config.info_card.motd.leading
+                        current_y = (
+                            current_y
+                            + regular_motd_line_height
+                            + self.config.info_card.motd.leading
+                        )
                         current_x = initial_position[0]
                 else:
                     pic_drawer.text(
@@ -328,9 +348,13 @@ class Renderer:
                     current_length = pic_drawer.textlength(component, current_font)
                     current_x += current_length
             # 处理颜色符号
-            elif isinstance(component, (JavaMinecraftColor, WebColor)):
+            elif isinstance(
+                component, (JavaMinecraftColor, BedrockMinecraftColor, WebColor)
+            ):
                 if isinstance(component, JavaMinecraftColor):
                     current_color = JAVA_COLORS[component]["rgb"]
+                elif isinstance(component, BedrockMinecraftColor):
+                    current_color = BEDROCK_COLORS[component]["rgb"]
                 else:
                     current_color = component.rgb
                 # JE特性：格式代码仅仅在颜色代码前生效
@@ -340,22 +364,36 @@ class Renderer:
                 current_underlined = False
                 current_obfuscated = False
             # 处理格式符号
-            elif isinstance(component, JavaFormatting):
-                if component == JavaFormatting.BOLD:
-                    current_bold = True
-                elif component == JavaFormatting.ITALIC:
-                    current_italic = True
-                elif component == JavaFormatting.UNDERLINED:
-                    current_underlined = True
-                elif component == JavaFormatting.STRIKETHROUGH:
-                    current_strikethrough = True
-                elif component == JavaFormatting.RESET:
-                    current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]
-                    current_bold = False
-                    current_italic = False
-                    current_strikethrough = False
-                    current_underlined = False
-                    current_obfuscated = False
+            elif isinstance(component, (JavaFormatting, BedrockFormatting)):
+                if isinstance(component, JavaFormatting):
+                    if component == JavaFormatting.BOLD:
+                        current_bold = True
+                    elif component == JavaFormatting.ITALIC:
+                        current_italic = True
+                    elif component == JavaFormatting.UNDERLINED:
+                        current_underlined = True
+                    elif component == JavaFormatting.STRIKETHROUGH:
+                        current_strikethrough = True
+                    elif component == JavaFormatting.RESET:
+                        current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]
+                        current_bold = False
+                        current_italic = False
+                        current_strikethrough = False
+                        current_underlined = False
+                        current_obfuscated = False
+                elif isinstance(component, BedrockFormatting):
+                    if component == BedrockFormatting.BOLD:
+                        current_bold = True
+                    elif component == BedrockFormatting.ITALIC:
+                        current_italic = True
+                    # 基岩版没有下划线和删除线
+                    elif component == BedrockFormatting.RESET:
+                        current_color = BEDROCK_COLORS[BedrockMinecraftColor.WHITE]["rgb"]
+                        current_bold = False
+                        current_italic = False
+                        current_strikethrough = False
+                        current_underlined = False
+                        current_obfuscated = False
 
     def _get_motd_font(self, bold_status: bool, italic_status: bool):
         """获取italic与bold对应的字体"""

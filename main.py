@@ -1,11 +1,9 @@
-import ipaddress
 import json
 import random
-import re
 from pathlib import Path
 from socket import gaierror
 
-from mcstatus import JavaServer
+from mcstatus import BedrockServer, JavaServer
 from mcstatus.responses.bedrock import BedrockStatusResponse
 from mcstatus.responses.java import JavaStatusResponse
 from pydantic import ValidationError
@@ -127,12 +125,7 @@ class JEMSSPlugin(Star):
         user_name = event.get_sender_name()
         yield event.plain_result(f"WOW, {user_name} 管理员来了呢！")
 
-    @filter.command_group("jeping")
-    def jeping(self):
-        """查询Minecraft服务器有关信息"""
-        pass
-
-    @jeping.command("quick")
+    @filter.command("quickping")
     async def quick(self, event: AstrMessageEvent, quick_name: str):
         """快捷查询预设好的服务器"""
         if quick_name in self.quick_name_index.keys():
@@ -145,36 +138,90 @@ class JEMSSPlugin(Star):
             )
             yield event.plain_result("无效的快捷名称")
             return
+        server_addresss_parts = server["address"].split(":")
+        server_host = server_addresss_parts[0]
+        server_port = int(server_addresss_parts[1])
         async for result in self._get_status(
-            event, server["address"], server["display_name"]
+            event, server_host, server_port, server["display_name"], server["is_bedrock"]
         ):
             yield result
 
-    # TODO:什么时候把基岩版的查询加上
+    # TODO:实现1.7的旧版本服务器支持
+    # TODO:IPV6，国际化域名支持
+    @filter.command_group("jeping")
+    def jeping(self):
+        """查询Minecraft Java 服务器有关信息"""
+        pass
+
     @jeping.command("status")
-    async def status(
+    async def jestatus(
         self,
         event: AstrMessageEvent,
         server_address: str,
         server_name: str | None = None,
     ):
         """获取JE服务器状态 参数：/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
-        async for result in self._get_status(event, server_address, server_name):
-            yield result
+        if ":" in server_address:
+            server_addresss_parts = server_address.split(":")
+            server_host = server_addresss_parts[0]
+            server_port = int(server_addresss_parts[1])
+            async for result in self._get_status(
+                event, server_host, server_port, server_name, False
+            ):
+                yield result
+        else:
+            async for result in self._get_status(
+                event, server_address, 25565, server_name, False
+            ):
+                yield result
 
-    async def _get_status(
+    # TODO:更完善的Minecraft 基岩版查询，但是基本上不玩基岩版导致对基岩版了解极少，后面再看吧
+    @filter.command_group("beping")
+    def beping(self):
+        """查询Minecraft Bedrock 服务器有关信息"""
+        pass
+
+    @beping.command("status")
+    async def bestatus(
         self,
         event: AstrMessageEvent,
         server_address: str,
         server_name: str | None = None,
     ):
+        """获取BE服务器状态 参数：/beping status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
+        if ":" in server_address:
+            server_addresss_parts = server_address.split(":")
+            server_host = server_addresss_parts[0]
+            server_port = int(server_addresss_parts[1])
+            async for result in self._get_status(
+                event, server_host, server_port, server_name, True
+            ):
+                yield result
+        else:
+            async for result in self._get_status(
+                event, server_address, 19132, server_name, True
+            ):
+                yield result
+
+    async def _get_status(
+        self,
+        event: AstrMessageEvent,
+        server_address: str,
+        server_port: int,
+        server_name: str | None = None,
+        is_bedrock: bool = False,
+    ):
         """实现服务器信息查询与渲染"""
 
         # 服务器信息获取
         try:
-            server = await JavaServer.async_lookup(server_address)
-            # 这里由于mcstatus的默认协议版本为47，Velocity可能会将motd自动降级而不支持hex（webcolor）所以说这里设为26.2的协议版本776
-            server_status = await server.async_status(version=776)
+            if is_bedrock:
+                server = BedrockServer(server_address, server_port, timeout=3)
+                server_status = await server.async_status()
+            else:
+                server = await JavaServer.async_lookup(server_address)
+                # 这里由于mcstatus的默认协议版本为47，Velocity可能会将motd自动降级而不支持hex（webcolor）所以说这里设为26.2的协议版本776
+                server_status = await server.async_status(version=776)
         # TODO:更细致的异常反馈，但是由于mcstatus现在异常处理过于粗略，暂且搁置
         except gaierror as e:
             logger.error(
@@ -219,33 +266,63 @@ class JEMSSPlugin(Star):
         motd_text = server_status.motd.to_plain()
         display_name = server_name or server_address
 
-        if self.verified_config.general.is_info_text_enabled:
-            if self.verified_config.text_info.is_markdown_enabled:
-                # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前仍未想到解决办法
-                yield event.plain_result(
-                    f"## {display_name} \n\n"
-                    "| 项目 | 状态 |\n"
-                    "| :--- | :--- |\n"
-                    f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
-                    f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
-                    f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
-                    f"| **解析地址** | {server.address.host}:{server.address.port} |\n"
-                    "### MOTD\n"
-                    "```text \n"
-                    f"\u200b{motd_text}\n"
-                    "```"
-                )
-            else:
-                yield event.plain_result(
-                    f"🖥  {display_name}\n"
-                    "═══════════════════════════\n"
-                    f"📋  服务器版本：{server_status.version.name}（协议 {server_status.version.protocol}）\n"
-                    f"👥  在线人数：{server_status.players.online} / {server_status.players.max}\n"
-                    f"⚡  延   迟：{round(server_status.latency, 2)} ms\n"
-                    f"🌐  解析地址：{server.address.host}:{server.address.port}\n"
-                    f"💬  MOTD：\n{motd_text}\n"
-                    "═══════════════════════════"
-                )
+        # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前仍未想到解决办法
+        # TODO:这个地方输出太繁杂了，要改
+        if is_bedrock:
+            if self.verified_config.general.is_info_text_enabled:
+                if self.verified_config.text_info.is_markdown_enabled:
+                    yield event.plain_result(
+                        f"## {display_name} \n\n"
+                        "| 项目 | 状态 |\n"
+                        "| :--- | :--- |\n"
+                        f"| **服务器版本** | {server_status.version.name} |\n"
+                        f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
+                        f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
+                        f"| **地址** | {server.address.host}:{server.address.port} |\n"
+                        "### MOTD\n"
+                        "```text \n"
+                        f"\u200b{motd_text}\n"
+                        "```"
+                    )
+                else:
+                    yield event.plain_result(
+                        f"🖥  {display_name}\n"
+                        "═══════════════════════════\n"
+                        f"📋  服务器版本：{server_status.version.name}\n"
+                        f"👥  在线人数：{server_status.players.online} / {server_status.players.max}\n"
+                        f"⚡  延   迟：{round(server_status.latency, 2)} ms\n"
+                        f"🌐  地址：{server.address.host}:{server.address.port}\n"
+                        f"💬  MOTD：\n{motd_text}\n"
+                        "═══════════════════════════"
+                    )
+        else:
+            if self.verified_config.general.is_info_text_enabled:
+                if self.verified_config.text_info.is_markdown_enabled:
+                    # HACK:此处为了排版用了零宽字符，对复制不友好，会引入看不见的字符，但目前仍未想到解决办法
+                    yield event.plain_result(
+                        f"## {display_name} \n\n"
+                        "| 项目 | 状态 |\n"
+                        "| :--- | :--- |\n"
+                        f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
+                        f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
+                        f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
+                        f"| **解析地址** | {server.address.host}:{server.address.port} |\n"
+                        "### MOTD\n"
+                        "```text \n"
+                        f"\u200b{motd_text}\n"
+                        "```"
+                    )
+                else:
+                    yield event.plain_result(
+                        f"🖥  {display_name}\n"
+                        "═══════════════════════════\n"
+                        f"📋  服务器版本：{server_status.version.name}（协议 {server_status.version.protocol}）\n"
+                        f"👥  在线人数：{server_status.players.online} / {server_status.players.max}\n"
+                        f"⚡  延   迟：{round(server_status.latency, 2)} ms\n"
+                        f"🌐  解析地址：{server.address.host}:{server.address.port}\n"
+                        f"💬  MOTD：\n{motd_text}\n"
+                        "═══════════════════════════"
+                    )
 
             logger.info(server_status.motd.to_plain())
 

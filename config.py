@@ -30,6 +30,7 @@ class QuickPingConfig(BaseModel):
 class QuickPingServersConfig(BaseModel):
     template_key: str
     quick_name: str
+    is_bedrock: bool = False
     address: str
     display_name: str
 

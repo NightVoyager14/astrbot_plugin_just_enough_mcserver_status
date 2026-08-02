@@ -40,6 +40,12 @@
                 "type": "string",
                 "default": "server"
               },
+              "is_bedrock": {
+                "description": "基岩版",
+                "hint": "是否以基岩版的方式查询",
+                "type": "bool",
+                "default": false
+              },
               "address": {
                 "description": "服务器地址",
                 "hint": "同status指令中一样，格式为 <服务器地址[:服务器端口]>",
