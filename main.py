@@ -248,7 +248,7 @@ class JEMSSPlugin(Star):
                 "- 服务器未开启或正在重启\n"
                 "- 端口号错误或未开放\n"
                 "- 服务器已开启但被防火墙拦截\n"
-                "- 该端口并非 Minecraft Java 版服务\n"
+                "- 该端口并非 Minecraft 服务\n"
                 "- 网络连接不稳定或超时\n\n"
                 "--------------------------\n"
                 "请稍后重试，或核对服务器地址与端口号是否正确"
@@ -275,7 +275,8 @@ class JEMSSPlugin(Star):
                         f"## {display_name} \n\n"
                         "| 项目 | 状态 |\n"
                         "| :--- | :--- |\n"
-                        f"| **服务器版本** | {server_status.version.name} |\n"
+                        f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
+                        f"| **地图名称** | {server_status.map_name} |\n" # pyright: ignore[reportAttributeAccessIssue]
                         f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
                         f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
                         f"| **地址** | {server.address.host}:{server.address.port} |\n"
@@ -288,7 +289,8 @@ class JEMSSPlugin(Star):
                     yield event.plain_result(
                         f"🖥  {display_name}\n"
                         "═══════════════════════════\n"
-                        f"📋  服务器版本：{server_status.version.name}\n"
+                        f"📋  服务器版本：{server_status.version.name}（协议 {server_status.version.protocol}）\n"
+                        f"🗺 地图名称： {server_status.map_name}\n" # pyright: ignore[reportAttributeAccessIssue]
                         f"👥  在线人数：{server_status.players.online} / {server_status.players.max}\n"
                         f"⚡  延   迟：{round(server_status.latency, 2)} ms\n"
                         f"🌐  地址：{server.address.host}:{server.address.port}\n"

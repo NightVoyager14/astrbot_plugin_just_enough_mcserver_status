@@ -103,12 +103,16 @@ class Renderer:
         pic = Image.new("RGBA", (1248, 144))
         pic_drawer = ImageDraw.Draw(pic)
 
+        logger.info(status)
         # 设置背景
         self._set_background(pic)
 
         # 添加服务器标题
         if self.config.info_card.title.is_enabled:
-            self._add_server_title(title, server, pic_drawer)
+            if isinstance(status, JavaStatusResponse):
+                self._add_server_title(title, server, pic_drawer, (160, 8))
+            elif isinstance(status, BedrockStatusResponse):
+                self._add_server_title(title, server, pic_drawer, (20, 8))
 
         # 添加服务器图标
         # 基岩版没有服务器图标
@@ -127,12 +131,15 @@ class Renderer:
         # 解析motd
         if self.config.info_card.motd.is_enabled:
             motd = status.motd.parsed
-            self._add_motd(motd, pic_drawer, initial_position=(160, 60))
+            if isinstance(status, JavaStatusResponse):
+                self._add_motd(motd, pic_drawer, initial_position=(160, 60))
+            elif isinstance(status, BedrockStatusResponse):
+                self._add_motd(motd, pic_drawer, initial_position=(20, 60))
 
         # TODO:优化缓存
         # 设置缓存文件路径
         session_id = event.get_session_id()
-        # 删除同对话的之前缓存
+        # 删除同对话之前的缓存
         old_files = self.temp_path.glob(f"JEMSSPlugin_temp_img_{session_id}*.png")
         for old_file in old_files:
             try:
@@ -154,6 +161,7 @@ class Renderer:
 
     # TODO:更加完善的自定义背景机制
     def _set_background(self, pic: Image.Image):
+        # 自定义背景部分
         if (
             self.config.info_card.background.is_custom_enabled
             and self.config.info_card.background.upload
@@ -186,6 +194,7 @@ class Renderer:
                 logger.error(f"[{e.code}] {e.message}")
                 logger.error("Now reverting to the default background.")
                 pic.paste(self.default_background, (0, 0))
+        # 默认背景渲染逻辑
         else:
             pic.paste(self.default_background, (0, 0))
 
@@ -205,18 +214,19 @@ class Renderer:
         title: str | None,
         server: JavaServer | BedrockServer,
         pic_drawer: ImageDraw.ImageDraw,
+        position: tuple[int, int]
     ):
         """添加展示的标题"""
         if title:
             pic_drawer.text(
-                (160, 8),
+                position,
                 f"{title}",
                 font=self.font_title,
             )
         else:
             # 添加服务器地址
             pic_drawer.text(
-                (160, 8),
+                position,
                 f"{server.address.host}:{server.address.port}",
                 font=self.font_title,
             )
