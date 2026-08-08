@@ -103,7 +103,6 @@ class Renderer:
         pic = Image.new("RGBA", (1248, 144))
         pic_drawer = ImageDraw.Draw(pic)
 
-        logger.info(status)
         # 设置背景
         self._set_background(pic)
 

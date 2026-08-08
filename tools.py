@@ -80,7 +80,7 @@ class JEMSSBedrockTool(FunctionTool[AstrAgentContext]):
             "properties": {
                 "server_address": {
                     "type": "string",
-                    "description": "Minecraft Bedrock Edition server address. Format: 'host[:port]', where port is optional and defaults to 19132. Do NOT include protocol (e.g., 'http://') or trailing slashes. Examples: 'play.example.com:25565' or '127.0.0.1'.",
+                    "description": "Minecraft Bedrock Edition server address. Format: 'host[:port]', where port is optional and defaults to 19132. Do NOT include protocol (e.g., 'http://') or trailing slashes. Examples: 'play.example.com:19132' or '127.0.0.1'.",
                 },
             },
             "required": ["server_address"],
@@ -96,7 +96,6 @@ class JEMSSBedrockTool(FunctionTool[AstrAgentContext]):
                 server_addresss_parts = server_address.split(":")
                 server_host = server_addresss_parts[0]
                 server_port = int(server_addresss_parts[1])
-                server = BedrockServer(server_host, server_port, timeout=3)
             else:
                 server_host = server_address
                 server_port = 19132
@@ -120,7 +119,7 @@ class JEMSSBedrockTool(FunctionTool[AstrAgentContext]):
             }
             if server_status.version.brand == "MCPE":
                 tool_result["version"]["brand"] = "Bedrock Edition"
-            elif server_status.version.brand == "MCPE":
+            elif server_status.version.brand == "MCEE":
                 tool_result["version"]["brand"] = "Education Edition"
             return json.dumps(tool_result, ensure_ascii=False, separators=(",", ":"))
         except Exception as e:
