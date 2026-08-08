@@ -17,7 +17,7 @@ from astrbot.core.utils import astrbot_path
 from .config import PluginConfig
 from .exceptions import ConfigException, PluginErrorCode
 from .renderer import Renderer
-from .tools import JEMSSTool
+from .tools import JEMSSBedrockTool, JEMSSJavaTool
 
 
 class JEMSSPlugin(Star):
@@ -28,7 +28,7 @@ class JEMSSPlugin(Star):
         super().__init__(context)
         # fmt: off
         # 注册插件
-        self.context.add_llm_tools(JEMSSTool())
+        self.context.add_llm_tools(JEMSSJavaTool(), JEMSSBedrockTool())
         # 获取并检查基本路径
         self.plugin_path = (Path(astrbot_path.get_astrbot_plugin_path()) / "astrbot_plugin_just_enough_mcserver_status")
         self.temp_path = Path(astrbot_path.get_astrbot_temp_path()) / "JEMSSPlugin_temp_pics"
@@ -142,7 +142,11 @@ class JEMSSPlugin(Star):
         server_host = server_addresss_parts[0]
         server_port = int(server_addresss_parts[1])
         async for result in self._get_status(
-            event, server_host, server_port, server["display_name"], server["is_bedrock"]
+            event,
+            server_host,
+            server_port,
+            server["display_name"],
+            server["is_bedrock"],
         ):
             yield result
 
@@ -276,7 +280,7 @@ class JEMSSPlugin(Star):
                         "| 项目 | 状态 |\n"
                         "| :--- | :--- |\n"
                         f"| **服务器版本** | {server_status.version.name}（协议 {server_status.version.protocol}） |\n"
-                        f"| **地图名称** | {server_status.map_name} |\n" # pyright: ignore[reportAttributeAccessIssue]
+                        f"| **地图名称** | {server_status.map_name} |\n"  # pyright: ignore[reportAttributeAccessIssue]
                         f"| **在线人数** | {server_status.players.online} / {server_status.players.max} |\n"
                         f"| **延迟** | {round(server_status.latency, 2)} ms |\n"
                         f"| **地址** | {server.address.host}:{server.address.port} |\n"
@@ -290,7 +294,7 @@ class JEMSSPlugin(Star):
                         f"🖥  {display_name}\n"
                         "═══════════════════════════\n"
                         f"📋  服务器版本：{server_status.version.name}（协议 {server_status.version.protocol}）\n"
-                        f"🗺 地图名称： {server_status.map_name}\n" # pyright: ignore[reportAttributeAccessIssue]
+                        f"🗺 地图名称： {server_status.map_name}\n"  # pyright: ignore[reportAttributeAccessIssue]
                         f"👥  在线人数：{server_status.players.online} / {server_status.players.max}\n"
                         f"⚡  延   迟：{round(server_status.latency, 2)} ms\n"
                         f"🌐  地址：{server.address.host}:{server.address.port}\n"

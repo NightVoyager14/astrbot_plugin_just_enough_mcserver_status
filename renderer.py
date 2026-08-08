@@ -214,7 +214,7 @@ class Renderer:
         title: str | None,
         server: JavaServer | BedrockServer,
         pic_drawer: ImageDraw.ImageDraw,
-        position: tuple[int, int]
+        position: tuple[int, int],
     ):
         """添加展示的标题"""
         if title:
@@ -285,13 +285,15 @@ class Renderer:
         self,
         motd: list[ParsedMotdComponent],
         pic_drawer: ImageDraw.ImageDraw,
-        initial_position: tuple[int, int] = (160, 60)
+        initial_position: tuple[int, int] = (160, 60),
     ):
         """格式化渲染状态机"""
         # 设置状态机的状态
         current_x, current_y = initial_position
         current_length = 0
-        current_color = JAVA_COLORS[JavaMinecraftColor.WHITE]["rgb"]   # 这里为了方便，统一用java的白色变量
+        current_color = JAVA_COLORS[JavaMinecraftColor.WHITE][
+            "rgb"
+        ]  # 这里为了方便，统一用java的白色变量
         current_bold = False
         current_italic = False
         current_strikethrough = False
@@ -398,7 +400,9 @@ class Renderer:
                         current_italic = True
                     # 基岩版没有下划线和删除线
                     elif component == BedrockFormatting.RESET:
-                        current_color = BEDROCK_COLORS[BedrockMinecraftColor.WHITE]["rgb"]
+                        current_color = BEDROCK_COLORS[BedrockMinecraftColor.WHITE][
+                            "rgb"
+                        ]
                         current_bold = False
                         current_italic = False
                         current_strikethrough = False
