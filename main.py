@@ -27,7 +27,7 @@ class JEMSSPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
         # fmt: off
-        # 注册插件
+        # 注册Agent Tools
         self.context.add_llm_tools(JEMSSJavaTool(), JEMSSBedrockTool())
         # 获取并检查基本路径
         self.plugin_path = (Path(astrbot_path.get_astrbot_plugin_path()) / "astrbot_plugin_just_enough_mcserver_status")
@@ -42,10 +42,12 @@ class JEMSSPlugin(Star):
         logger.debug(f"Original Config: {json.dumps(config, ensure_ascii=False, indent=4)}")
         logger.debug(f"Verified Config: {self.verified_config.model_dump_json(indent=4)}")
         # 加载quick_name查询索引
-        self.quick_name_index = {
-            self.verified_config.quick_ping.servers[index]["quick_name"]: index
-            for index in range(len(self.verified_config.quick_ping.servers))
-        }
+        self.quick_name_index = {}
+        self.default_quick_server_index = None
+        for index in range(len(self.verified_config.quick_ping.servers)):
+            self.quick_name_index[self.verified_config.quick_ping.servers[index].quick_name] = index
+            if self.verified_config.quick_ping.servers[index].is_default:
+                self.default_quick_server_index = index
         # 加载渲染器
         self.renderer = Renderer(self.plugin_path, self.verified_config, self.temp_path, self.data_path)
         # 加载其他资源
@@ -56,6 +58,7 @@ class JEMSSPlugin(Star):
     def _verify_config(self, user_config: AstrBotConfig):
         try:
             return PluginConfig.model_validate(user_config)
+        # HACK:这里直接抛弃有点太暴力了
         except ConfigException as e:
             logger.warning(f"[{e.code}] Plugin config validation failed.")
             logger.warning(f"{e}")
@@ -94,9 +97,14 @@ class JEMSSPlugin(Star):
         yield event.plain_result(
             "JEMSS 帮助信息\n"
             "```text\n"
-            "├── /jeping —— 服务器状态查询\n"
+            "├── /jeping —— Java 版服务器状态查询\n"
             "│   └── status <服务器地址[:服务器端口]> [名称]\n"
-            "│        └── 获取 Java 版状态信息\n"
+            "│        └── 获取 Java 版服务器状态信息\n"
+            "├── /beping —— 基岩版服务器状态查询\n"
+            "│   └── status <服务器地址[:服务器端口]> [名称]\n"
+            "│        └── 获取基岩服务器版状态信息\n"
+            "├── /quickping [快捷名称]\n"
+            "│    └── 快捷查询预设服务器\n"
             "\n"
             "└── /jemss —— 插件工具集\n"
             "    ├── version\n"
@@ -126,31 +134,43 @@ class JEMSSPlugin(Star):
         yield event.plain_result(f"WOW, {user_name} 管理员来了呢！")
 
     @filter.command("quickping")
-    async def quick(self, event: AstrMessageEvent, quick_name: str):
+    async def quick(self, event: AstrMessageEvent, quick_name: str | None = None):
         """快捷查询预设好的服务器"""
-        if quick_name in self.quick_name_index.keys():
-            server = self.verified_config.quick_ping.servers[
-                self.quick_name_index[quick_name]
-            ]
+        index: int | None
+        if quick_name is not None:
+            index = self.quick_name_index.get(quick_name)
         else:
+            index = self.default_quick_server_index
+        if index is None:
             logger.warning(
-                f"{PluginErrorCode.INP_INVALID_QUICK_NAME} Invalid quick name."
+                f"[{PluginErrorCode.INP_INVALID_QUICK_NAME}] Invalid quick name."
             )
             yield event.plain_result("无效的快捷名称")
             return
-        server_addresss_parts = server["address"].split(":")
-        server_host = server_addresss_parts[0]
-        server_port = int(server_addresss_parts[1])
+
+        # TODO:将地址解析抽离为单独函数并优化
+        server = self.verified_config.quick_ping.servers[index]
+        if ":" in server.address:
+            server_address_parts = server.address.split(":", 1)
+            server_host = server_address_parts[0]
+            server_port = int(server_address_parts[1])
+        else:
+            server_host = server.address
+            if server.is_bedrock:
+                server_port = 19132
+            else:
+                server_port = 25565
+
         async for result in self._get_status(
             event,
             server_host,
             server_port,
-            server["display_name"],
-            server["is_bedrock"],
+            server.display_name,
+            server.is_bedrock,
         ):
             yield result
 
-    # TODO:实现1.7的旧版本服务器支持
+    # TODO:实现Pre-1.7的旧版本服务器支持
     # TODO:IPV6，国际化域名支持
     @filter.command_group("jeping")
     def jeping(self):

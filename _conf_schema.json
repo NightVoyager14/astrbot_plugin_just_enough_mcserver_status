@@ -40,6 +40,12 @@
                 "type": "string",
                 "default": "server"
               },
+              "is_default": {
+                "description": "默认查询",
+                "hint": "是否将该预设服务器作为快捷查询的默认服务器",
+                "type": "bool",
+                "default": false
+              },
               "is_bedrock": {
                 "description": "基岩版",
                 "hint": "是否以基岩版的方式查询",
