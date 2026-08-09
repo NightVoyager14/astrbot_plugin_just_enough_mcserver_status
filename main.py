@@ -14,10 +14,10 @@ from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
 from astrbot.api.star import Context, Star
 from astrbot.core.utils import astrbot_path
 
-from .config import PluginConfig
-from .exceptions import ConfigException, PluginErrorCode
-from .renderer import Renderer
-from .tools import JEMSSBedrockTool, JEMSSJavaTool
+from .src.config import PluginConfig
+from .src.exceptions import ConfigException, PluginErrorCode
+from .src.renderer import Renderer
+from .src.tools import JEMSSBedrockTool, JEMSSJavaTool
 
 
 class JEMSSPlugin(Star):
