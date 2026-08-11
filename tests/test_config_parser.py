@@ -157,7 +157,6 @@ INVALIDATED_PING_THRESHOLD_ORDER_CONFIG = """{
         "bad": 50
     }
 }
-
 """
 
 
@@ -212,7 +211,3 @@ class TestConfig(unittest.TestCase):
             ctx.exception.message,
             "Config item ping_indicator's ping_thresholds has wrong order.The order must be excellent < good < medium < bad.",
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
