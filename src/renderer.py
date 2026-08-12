@@ -25,6 +25,7 @@ from .motdinfo import (
     JavaMinecraftColor,
     WebColor,
 )
+from .themes import BedrockInfoCardLayout, BedrockInfoCardPalette
 
 
 class Renderer:
@@ -58,7 +59,7 @@ class Renderer:
             plugin_path / "fonts/minecraft.ttf", size=30
         )
         # 加载默认贴图
-        self.default_background = Image.open(
+        self.je_default_background = Image.open(
             self.plugin_path / "assets/background_dark.png"
         )
         self.ping_icons = {
@@ -104,7 +105,7 @@ class Renderer:
         pic_drawer = ImageDraw.Draw(pic)
 
         # 设置背景
-        self._set_background(pic)
+        self._set_background(pic, pic_drawer, isinstance(status, BedrockStatusResponse))
 
         # 添加服务器标题
         if self.config.info_card.title.is_enabled:
@@ -131,9 +132,9 @@ class Renderer:
         if self.config.info_card.motd.is_enabled:
             motd = status.motd.parsed
             if isinstance(status, JavaStatusResponse):
-                self._add_motd(motd, pic_drawer, initial_position=(160, 60))
+                self._add_motd(motd, pic_drawer, initial_position=(160, 65))
             elif isinstance(status, BedrockStatusResponse):
-                self._add_motd(motd, pic_drawer, initial_position=(20, 60))
+                self._add_motd(motd, pic_drawer, initial_position=(20, 65))
 
         # TODO:优化缓存
         # 设置缓存文件路径
@@ -159,7 +160,9 @@ class Renderer:
         return str(pic_temp_path)
 
     # TODO:更加完善的自定义背景机制
-    def _set_background(self, pic: Image.Image):
+    def _set_background(
+        self, pic: Image.Image, pic_drawer: ImageDraw.ImageDraw, is_bedrock: bool
+    ):
         # 自定义背景部分
         if (
             self.config.info_card.background.is_custom_enabled
@@ -177,25 +180,87 @@ class Renderer:
                     )
                 user_background = Image.open(user_background_path).resize((1248, 144))
                 pic.paste(user_background, (0, 0))
+                return
             except FileNotFoundError:
                 logger.warning(
                     f"[{PluginErrorCode.RND_BACKGROUND_LOAD}] Can not find the background file."
                 )
                 logger.warning("Now reverting to the default background.")
-                pic.paste(self.default_background, (0, 0))
             except UnidentifiedImageError:
                 logger.warning(
                     f"[{PluginErrorCode.RND_BACKGROUND_LOAD}] Can not open and identify the background file"
                 )
                 logger.warning("Now reverting to the default background.")
-                pic.paste(self.default_background, (0, 0))
             except SecurityException as e:
                 logger.error(f"[{e.code}] {e.message}")
                 logger.error("Now reverting to the default background.")
-                pic.paste(self.default_background, (0, 0))
-        # 默认背景渲染逻辑
+        # 上方校验未通过回退到默认背景
+        # 默认基岩版渲染逻辑
+        # HACK:这样直接存储BOX很简陋不优雅且不方便后续调整
+        if is_bedrock:
+            # 添加背景
+            pic_drawer.rectangle(
+                [(0, 0), (1248, 144)], BedrockInfoCardPalette.BACKGROUND.value
+            )
+            # 添加边框
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.BORDER_BOX.value,
+                BedrockInfoCardPalette.BORDER.value,
+            )
+            # 添加标题框
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.TITLE_BOX.value,
+                BedrockInfoCardPalette.TITLE_BACKGROUND.value,
+            )
+            # 添加状态条
+            # - 状态条上侧
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_TOP_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_TOP.value,
+            )
+            # - 状态条左侧
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_LEFT_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_TOP.value,
+            )
+            # - 状态条中心
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_CENTER_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_CENTER.value,
+            )
+            # - 状态条下侧
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_BOTTOM_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_BOTTOM.value,
+            )
+            # - 状态条右侧
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_RIGHT_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_BOTTOM.value,
+            )
+            # - 状态条左下角
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_LEFT_CORNER_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_CORNER.value,
+            )
+            # - 状态栏右上角
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_RIGHT_CORNER_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_CORNER.value,
+            )
+            # - 状态栏阴影
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.STATUS_BAR_SHADOW_BOX.value,
+                BedrockInfoCardPalette.STATUS_BAR_SHADOW.value,
+            )
+            # 添加内容 MOTD
+            pic_drawer.rectangle(
+                BedrockInfoCardLayout.CONTENT_BOX.value,
+                BedrockInfoCardPalette.CONTENT_BACKGROUND.value,
+            )
+        # 默认JavaEdition背景渲染逻辑
         else:
-            pic.paste(self.default_background, (0, 0))
+            pic.paste(self.je_default_background, (0, 0))
 
     def _add_server_icon(self, status: JavaStatusResponse, pic: Image.Image):
         """添加服务器头像"""
@@ -239,28 +304,38 @@ class Renderer:
             <= self.config.info_card.ping_indicator.ping_thresholds.excellent
         ):
             pic.paste(
-                self.ping_icons["ping5"], (1200, 10), mask=self.ping_icons["ping5"]
+                self.ping_icons["ping5"],
+                (1200, 10),
+                mask=self.ping_icons["ping5"],
             )
         elif (
             status.latency <= self.config.info_card.ping_indicator.ping_thresholds.good
         ):
             pic.paste(
-                self.ping_icons["ping4"], (1200, 10), mask=self.ping_icons["ping4"]
+                self.ping_icons["ping4"],
+                (1200, 10),
+                mask=self.ping_icons["ping4"],
             )
         elif (
             status.latency
             <= self.config.info_card.ping_indicator.ping_thresholds.medium
         ):
             pic.paste(
-                self.ping_icons["ping3"], (1200, 10), mask=self.ping_icons["ping3"]
+                self.ping_icons["ping3"],
+                (1200, 10),
+                mask=self.ping_icons["ping3"],
             )
         elif status.latency <= self.config.info_card.ping_indicator.ping_thresholds.bad:
             pic.paste(
-                self.ping_icons["ping2"], (1200, 10), mask=self.ping_icons["ping2"]
+                self.ping_icons["ping2"],
+                (1200, 10),
+                mask=self.ping_icons["ping2"],
             )
         else:
             pic.paste(
-                self.ping_icons["ping1"], (1200, 10), mask=self.ping_icons["ping1"]
+                self.ping_icons["ping1"],
+                (1200, 10),
+                mask=self.ping_icons["ping1"],
             )
 
     def _add_player_count(

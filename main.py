@@ -104,7 +104,7 @@ class JEMSSPlugin(Star):
             "│   └── status <服务器地址[:服务器端口]> [名称]\n"
             "│        └── 获取基岩服务器版状态信息\n"
             "├── /quickping [快捷名称]\n"
-            "│    └── 快捷查询预设服务器\n"
+            "│    └── 快捷查询预设服务器，若不附加快捷名称参数，则查询默认预设服务器\n"
             "\n"
             "└── /jemss —— 插件工具集\n"
             "    ├── version\n"
@@ -145,7 +145,7 @@ class JEMSSPlugin(Star):
             logger.warning(
                 f"[{PluginErrorCode.INP_INVALID_QUICK_NAME}] Invalid quick name."
             )
-            yield event.plain_result("无效的快捷名称")
+            yield event.plain_result("无效的快捷名称或未正确设置默认预设服务器")
             return
 
         # TODO:将地址解析抽离为单独函数并优化
