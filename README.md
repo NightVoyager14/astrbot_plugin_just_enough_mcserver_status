@@ -21,7 +21,8 @@
 
 ## 效果展示
 
-![example01](https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/images/example01.png)
+![Java 版 InfoCard 示例](https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/images/example01.png)
+![Bedrock 版 InfoCard 示例](https://cdn.jsdelivr.net/gh/NightVoyager14/astrbot_plugin_just_enough_mcserver_status@main/images/example02.png)
 
 ## 插件功能
 
