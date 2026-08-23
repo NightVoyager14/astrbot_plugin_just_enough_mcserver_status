@@ -83,6 +83,10 @@ class PlayerCountConfig(BaseModel):
     is_enabled: bool = True
 
 
+class TimestampConfig(BaseModel):
+    is_enabled: bool = True
+
+
 class BackgroundConfig(BaseModel):
     is_custom_enabled: bool = False
     upload: list[str] = []
@@ -94,6 +98,7 @@ class InfoCardConfig(BaseModel):
     title: TitleConfig = TitleConfig()
     motd: MotdConfig = MotdConfig()
     player_count: PlayerCountConfig = PlayerCountConfig()
+    timestamp: TimestampConfig = TimestampConfig()
     background: BackgroundConfig = BackgroundConfig()
 
 

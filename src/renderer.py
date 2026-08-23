@@ -58,6 +58,9 @@ class Renderer:
         self.font_player = ImageFont.truetype(
             plugin_path / "fonts/minecraft.ttf", size=30
         )
+        self.font_timestamp = ImageFont.truetype(
+            plugin_path / "fonts/minecraft.ttf", size=20
+        )
         # 加载默认贴图
         self.je_default_background = Image.open(
             self.plugin_path / "assets/background_dark.png"
@@ -106,6 +109,10 @@ class Renderer:
 
         # 设置背景
         self._set_background(pic, pic_drawer, isinstance(status, BedrockStatusResponse))
+
+        # 添加时间戳水印
+        if self.config.info_card.timestamp.is_enabled:
+            self._add_timestamp(pic_drawer)
 
         # 添加服务器标题
         if self.config.info_card.title.is_enabled:
@@ -261,6 +268,13 @@ class Renderer:
         # 默认JavaEdition背景渲染逻辑
         else:
             pic.paste(self.je_default_background, (0, 0))
+
+    def _add_timestamp(self, pic_drawer: ImageDraw.ImageDraw):
+        """添加时间戳水印"""
+        # TODO:增加不同时区与自定义格式支持
+        time_now = datetime.now()
+        time_str = time_now.strftime("%Y-%m-%d %H:%M:%S")
+        pic_drawer.text((1060, 120), time_str, font=self.font_timestamp, fill=(128,128,128))
 
     def _add_server_icon(self, status: JavaStatusResponse, pic: Image.Image):
         """添加服务器头像"""

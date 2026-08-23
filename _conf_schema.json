@@ -188,6 +188,19 @@
           }
         }
       },
+      "timestamp": {
+        "description": "时间戳水印",
+        "type": "object",
+        "hint": "服务器在线人数相关配置",
+        "items": {
+          "is_enabled": {
+            "description": "时间戳水印显示",
+            "hint": "是否开启时间戳水印在信息卡片中渲染",
+            "type": "bool",
+            "default": true
+          }
+        }
+      },
       "background": {
         "description": "背景",
         "type": "object",

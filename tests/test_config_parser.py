@@ -47,6 +47,9 @@ ORIGINAL_TEST_CONFIG = """{
         "player_count": {
             "is_enabled": true
         },
+        "timestamp": {
+            "is_enabled": true
+        },
         "background": {
             "is_custom_enabled": false,
             "upload": []
@@ -95,6 +98,9 @@ EXPECTED_CONFIG_OUTPUT = {
             "leading": 10,
         },
         "player_count": {
+            "is_enabled": True,
+        },
+        "timestamp": {
             "is_enabled": True,
         },
         "background": {
