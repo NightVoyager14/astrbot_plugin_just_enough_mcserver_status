@@ -98,10 +98,10 @@ class JEMSSPlugin(Star):
             "JEMSS 帮助信息\n"
             "```text\n"
             "├── /jeping —— Java 版服务器状态查询\n"
-            "│   └── status <服务器地址[:服务器端口]> [名称]\n"
+            "│   └── status <服务器地址[:服务器端口]> [展示名称]\n"
             "│        └── 获取 Java 版服务器状态信息\n"
             "├── /beping —— 基岩版服务器状态查询\n"
-            "│   └── status <服务器地址[:服务器端口]> [名称]\n"
+            "│   └── status <服务器地址[:服务器端口]> [展示名称]\n"
             "│        └── 获取基岩服务器版状态信息\n"
             "├── /quickping [快捷名称]\n"
             "│    └── 快捷查询预设服务器，若不附加快捷名称参数，则查询默认预设服务器\n"
@@ -148,23 +148,12 @@ class JEMSSPlugin(Star):
             yield event.plain_result("无效的快捷名称或未正确设置默认预设服务器")
             return
 
-        # TODO:将地址解析抽离为单独函数并优化
         server = self.verified_config.quick_ping.servers[index]
-        if ":" in server.address:
-            server_address_parts = server.address.split(":", 1)
-            server_host = server_address_parts[0]
-            server_port = int(server_address_parts[1])
-        else:
-            server_host = server.address
-            if server.is_bedrock:
-                server_port = 19132
-            else:
-                server_port = 25565
+        logger.info(f"Quickping server: {server.quick_name}")
 
         async for result in self._get_status(
             event,
-            server_host,
-            server_port,
+            server.address,
             server.display_name,
             server.is_bedrock,
         ):
@@ -185,19 +174,8 @@ class JEMSSPlugin(Star):
         server_name: str | None = None,
     ):
         """获取JE服务器状态 参数：/jeping status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
-        if ":" in server_address:
-            server_addresss_parts = server_address.split(":")
-            server_host = server_addresss_parts[0]
-            server_port = int(server_addresss_parts[1])
-            async for result in self._get_status(
-                event, server_host, server_port, server_name, False
-            ):
-                yield result
-        else:
-            async for result in self._get_status(
-                event, server_address, 25565, server_name, False
-            ):
-                yield result
+        async for result in self._get_status(event, server_address, server_name, False):
+            yield result
 
     # TODO:更完善的Minecraft 基岩版查询，但是基本上不玩基岩版导致对基岩版了解极少，后面再看吧
     @filter.command_group("beping")
@@ -213,34 +191,35 @@ class JEMSSPlugin(Star):
         server_name: str | None = None,
     ):
         """获取BE服务器状态 参数：/beping status [服务器域名或ip地址与端口] [(选填)服务器名称]"""
-        if ":" in server_address:
-            server_addresss_parts = server_address.split(":")
-            server_host = server_addresss_parts[0]
-            server_port = int(server_addresss_parts[1])
-            async for result in self._get_status(
-                event, server_host, server_port, server_name, True
-            ):
-                yield result
-        else:
-            async for result in self._get_status(
-                event, server_address, 19132, server_name, True
-            ):
-                yield result
+        async for result in self._get_status(event, server_address, server_name, True):
+            yield result
 
     async def _get_status(
         self,
         event: AstrMessageEvent,
         server_address: str,
-        server_port: int,
         server_name: str | None = None,
         is_bedrock: bool = False,
     ):
         """实现服务器信息查询与渲染"""
 
+        # 提前定义 host 和 port 防止 pylance 报错，即使这样会导致在java版查询时产生无用变量
+        server_host = server_address
+        server_port = 19132 if is_bedrock else 25565
+
+        logger.info(f"Server address: {server_address}")
+        # TODO:将地址解析抽离为单独函数并优化
+        if is_bedrock:
+            if ":" in server_address:
+                server_addresss_parts = server_address.split(":")
+                server_host = server_addresss_parts[0]
+                server_port = int(server_addresss_parts[1])
+                logger.debug(f"Server host: {server_host}")
+                logger.debug(f"Server port: {server_port}")
         # 服务器信息获取
         try:
             if is_bedrock:
-                server = BedrockServer(server_address, server_port, timeout=3)
+                server = BedrockServer(server_host, server_port, timeout=3)
                 server_status = await server.async_status()
             else:
                 server = await JavaServer.async_lookup(server_address)

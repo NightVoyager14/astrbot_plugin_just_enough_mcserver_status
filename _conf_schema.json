@@ -20,7 +20,7 @@
   },
   "quick_ping": {
     "description": "快捷查询",
-    "hint": "快捷查询指令（/jeping quick）相关配置",
+    "hint": "快捷查询指令（/quickping）相关配置",
     "type": "object",
     "items": {
       "servers": {
