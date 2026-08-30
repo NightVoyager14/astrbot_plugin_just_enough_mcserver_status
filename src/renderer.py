@@ -372,6 +372,7 @@ class Renderer:
         )
 
     # TODO:这里要优化下Java版本与Bedrock版本的不同MOTD渲染的区分
+    # TODO:优化motd超出图片等等边界情况
     def _add_motd(
         self,
         motd: list[ParsedMotdComponent],
