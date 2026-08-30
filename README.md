@@ -9,7 +9,7 @@
 [![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![AstrBot](https://img.shields.io/badge/AstrBot-Plugin-skyblue)](https://github.com/AstrBotDevs/AstrBot)
   
-![Version](https://img.shields.io/badge/JEMSS-v1.2.0--dev-EE82EE)<!-- Release 使用： ![Version](https://img.shields.io/badge/JEMSS-vx.x.x-228B22) -->
+![Version](https://img.shields.io/badge/JEMSS-v1.2.0-228B22)<!-- Release 使用： ![Version](https://img.shields.io/badge/JEMSS-vx.x.x--dev-EE82EE) -->
 [![Latest version](https://img.shields.io/github/v/tag/NightVoyager14/astrbot_plugin_just_enough_mcserver_status?label=Latest%20Version&color=FF8C00)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/releases/latest)
 
 > 一个为AstrBot实现Minecraft服务器查询功能的插件，图片渲染本地化，无需额外浏览器环境
@@ -30,7 +30,7 @@
 
 - **`/jeping status <服务器地址[:端口]> [名称]`** — 获取 Java 版服务器状态（在线人数、MOTD、延迟等）
 - **`/beping status <服务器地址[:端口]> [名称]`** — 获取基岩版服务器状态（在线人数、MOTD、地图名称、延迟等）
-- **`/quickping`** — 快捷获取预设服务器信息
+- **`/quickping [快捷名称]`** — 快捷查询预设服务器，若不附加快捷名称参数，则查询默认预设服务器
 - **`/jemss version`** — 查看插件版本
 - **`/jemss splash`** — 随机获取一条启动标语
 - **`/jemss admin`** (管理员) — 管理员测试指令

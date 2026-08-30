@@ -22,7 +22,7 @@ from .src.tools import JEMSSBedrockTool, JEMSSJavaTool
 
 class JEMSSPlugin(Star):
     # TODO:改进Metadata与程序版本的同步
-    __version__ = "v1.1.1"
+    __version__ = "v1.2.0"
 
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
