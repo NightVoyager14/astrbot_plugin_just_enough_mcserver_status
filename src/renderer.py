@@ -95,6 +95,7 @@ class Renderer:
     """
     TODO:随机代码支持
     TODO:TranslationTag支持
+    TODO:多次调整导致信息卡片有一点混乱，需要重新设计调整
     """
 
     def server_info_render(
@@ -274,7 +275,9 @@ class Renderer:
         # TODO:增加不同时区与自定义格式支持
         time_now = datetime.now()
         time_str = time_now.strftime("%Y-%m-%d %H:%M:%S")
-        pic_drawer.text((1060, 120), time_str, font=self.font_timestamp, fill=(128,128,128))
+        pic_drawer.text(
+            (1060, 120), time_str, font=self.font_timestamp, fill=(128, 128, 128)
+        )
 
     def _add_server_icon(self, status: JavaStatusResponse, pic: Image.Image):
         """添加服务器头像"""
