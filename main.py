@@ -12,6 +12,7 @@ import astrbot.api.message_components as Comp
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
 from astrbot.api.star import Context, Star
+from astrbot.core.star.star import star_map
 from astrbot.core.utils import astrbot_path
 
 from .src.config import PluginConfig
@@ -21,19 +22,20 @@ from .src.tools import JEMSSBedrockTool, JEMSSJavaTool
 
 
 class JEMSSPlugin(Star):
-    # TODO:改进Metadata与程序版本的同步
-    __version__ = "v1.2.0"
-
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
         # fmt: off
+        # 加载Metadata
+        self.metadata = star_map[self.__class__.__module__]
+        self.version = self.metadata.version or "Unknown"
+        self.repo = self.metadata.repo or "Unknown"
         # 注册Agent Tools
         self.context.add_llm_tools(JEMSSJavaTool(), JEMSSBedrockTool())
         # 获取并检查基本路径
-        self.plugin_path = (Path(astrbot_path.get_astrbot_plugin_path()) / "astrbot_plugin_just_enough_mcserver_status")
+        self.plugin_path = (Path(astrbot_path.get_astrbot_plugin_path()) / self.name)
         self.temp_path = Path(astrbot_path.get_astrbot_temp_path()) / "JEMSSPlugin_temp_pics"
         self.temp_path.mkdir(exist_ok=True)
-        self.data_path = Path(astrbot_path.get_astrbot_data_path()) / "plugin_data/astrbot_plugin_just_enough_mcserver_status"
+        self.data_path = Path(astrbot_path.get_astrbot_data_path()) / f"plugin_data/{self.name}"
         logger.info(f"JEMSSPlugin Path: {self.plugin_path}")
         logger.info(f"Temporary files Path: {self.temp_path}")
         logger.info(f"Plugin data Path: {self.data_path}")
@@ -86,9 +88,9 @@ class JEMSSPlugin(Star):
         yield event.plain_result(
             f"你好 {user_name}\n"
             "欢迎使用 AstrBot plugin Just Enough McServer Status\n"
-            f"Version: {self.__version__}\n"
+            f"Version: {self.version}\n"
             "License: AGPL-3.0 license https://www.gnu.org/licenses/agpl-3.0\n"
-            "Repo: https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status\n"
+            f"Repo: {self.repo}\n"
         )
 
     @jemss.command("help")

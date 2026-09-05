@@ -9,7 +9,7 @@
 [![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![AstrBot](https://img.shields.io/badge/AstrBot-Plugin-skyblue)](https://github.com/AstrBotDevs/AstrBot)
   
-![Version](https://img.shields.io/badge/JEMSS-v1.2.0-228B22)<!-- Release 使用： ![Version](https://img.shields.io/badge/JEMSS-vx.x.x--dev-EE82EE) -->
+![Version](https://img.shields.io/badge/JEMSS-v1.2.1--dev-EE82EE)<!-- Release 使用： ![Version](https://img.shields.io/badge/JEMSS-v1.2.0-228B22) -->
 [![Latest version](https://img.shields.io/github/v/tag/NightVoyager14/astrbot_plugin_just_enough_mcserver_status?label=Latest%20Version&color=FF8C00)](https://github.com/NightVoyager14/astrbot_plugin_just_enough_mcserver_status/releases/latest)
 
 > 一个为AstrBot实现Minecraft服务器查询功能的插件，图片渲染本地化，无需额外浏览器环境
@@ -39,7 +39,7 @@
 ### Agent tools
 
 - `mcje_server_status` — 为AI提供 Java Edition 查询接口
-- `mcbe_server_status` — 为AI提供 Java Edition 查询接口
+- `mcbe_server_status` — 为AI提供 Bedrock Edition 查询接口
 
 ## 插件配置
 
@@ -67,6 +67,7 @@
   - MOTD
     - 行间距
   - 在线人数
+  - 时间戳水印
   - 背景
     - 自定义背景
     - 上传背景图片
