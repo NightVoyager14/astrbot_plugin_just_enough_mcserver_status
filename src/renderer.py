@@ -196,7 +196,7 @@ class Renderer:
                 logger.warning("Now reverting to the default background.")
             except UnidentifiedImageError:
                 logger.warning(
-                    f"[{PluginErrorCode.RND_BACKGROUND_LOAD}] Can not open and identify the background file"
+                    f"[{PluginErrorCode.RND_BACKGROUND_LOAD}] Can not open and identify the background file."
                 )
                 logger.warning("Now reverting to the default background.")
             except SecurityException as e:

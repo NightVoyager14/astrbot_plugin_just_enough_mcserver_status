@@ -15,7 +15,7 @@ from astrbot.api.star import Context, Star
 from astrbot.core.star.star import star_map
 from astrbot.core.utils import astrbot_path
 
-from .src.config import PluginConfig
+from .src.config import PluginConfig, build_config_with_fallback
 from .src.exceptions import ConfigException, PluginErrorCode
 from .src.renderer import Renderer
 from .src.tools import JEMSSBedrockTool, JEMSSJavaTool
@@ -58,19 +58,10 @@ class JEMSSPlugin(Star):
         # fmt: on
 
     def _verify_config(self, user_config: AstrBotConfig):
-        try:
-            return PluginConfig.model_validate(user_config)
-        # HACK:这里直接抛弃有点太暴力了
-        except ConfigException as e:
-            logger.warning(f"[{e.code}] Plugin config validation failed.")
-            logger.warning(f"{e}")
-            logger.warning("Falling back to default config.")
-            return PluginConfig()
-        except ValidationError as e:
-            logger.warning("[VALIDATION_ERROR] Plugin config validation failed.")
-            logger.warning(f"{e}")
-            logger.warning("Falling back to default config.")
-            return PluginConfig()
+        verified_config, notes = build_config_with_fallback(user_config)
+        for note in notes:
+            logger.warning(note)
+        return verified_config
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""

@@ -12,6 +12,7 @@ class PluginErrorCode(StrEnum):
     CFG_EMPTY_OUTPUT = "CFG002"
     CFG_DUPLICATE_QUICK_NAME = "CFG003"
     CFG_DUPLICATE_DEFAULT_SERVER = "CFG004"
+    CFG_VALIDATION_ERROR = "CFG005"
 
     # RENDER 渲染类
     RND_TEMP_CLEAN = "RND003"
@@ -35,7 +36,10 @@ class PluginException(Exception):
     """插件异常基类"""
 
     def __init__(
-        self, code: PluginErrorCode, message: str = "", detail: str | None = None
+        self,
+        code: PluginErrorCode,
+        message: str = "",
+        detail: str | None = None,
     ):
         self.code = code
         self.message = message
@@ -59,5 +63,13 @@ class RenderException(PluginException):
 class ConfigException(PluginException):
     """配置相关异常"""
 
-    def __init__(self, code: PluginErrorCode, message: str, detail: str | None = None):
+    def __init__(
+        self,
+        code: PluginErrorCode,
+        message: str,
+        detail: str | None = None,
+        indexes: list[int] | None = None,
+    ):
         super().__init__(code, message, detail)
+        # 这里用于定位错误项
+        self.indexes = indexes or []
