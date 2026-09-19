@@ -4,19 +4,15 @@ from pathlib import Path
 from socket import gaierror
 
 from mcstatus import BedrockServer, JavaServer
-from mcstatus.responses.bedrock import BedrockStatusResponse
-from mcstatus.responses.java import JavaStatusResponse
-from pydantic import ValidationError
 
-import astrbot.api.message_components as Comp
 from astrbot.api import AstrBotConfig, logger
-from astrbot.api.event import AstrMessageEvent, MessageEventResult, filter
+from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star
 from astrbot.core.star.star import star_map
 from astrbot.core.utils import astrbot_path
 
 from .src.config import PluginConfig, build_config_with_fallback
-from .src.exceptions import ConfigException, PluginErrorCode
+from .src.exceptions import PluginErrorCode
 from .src.renderer import Renderer
 from .src.tools import JEMSSBedrockTool, JEMSSJavaTool
 
@@ -57,7 +53,7 @@ class JEMSSPlugin(Star):
             self.splashes = splashes_file.readlines()
         # fmt: on
 
-    def _verify_config(self, user_config: AstrBotConfig):
+    def _verify_config(self, user_config: AstrBotConfig) -> PluginConfig:
         verified_config, notes = build_config_with_fallback(user_config)
         for note in notes:
             logger.warning(note)
