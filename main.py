@@ -5,6 +5,7 @@ from socket import gaierror
 
 from mcstatus import BedrockServer, JavaServer
 
+from astrbot import __version__ as astrbot_version
 from astrbot.api import AstrBotConfig, logger
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star
@@ -70,6 +71,13 @@ class JEMSSPlugin(Star):
     @jemss.command("version")
     async def get_version(self, event: AstrMessageEvent):
         """获得JEMSS的版本"""
+        yield event.plain_result(
+            f"Just Enough McServer Status {self.version} on AstrBot v{astrbot_version}\n"
+        )
+
+    @jemss.command("about")
+    async def get_about(self, event: AstrMessageEvent):
+        """获得JEMSS的相关信息"""
         user_name = event.get_sender_name()
 
         yield event.plain_result(
