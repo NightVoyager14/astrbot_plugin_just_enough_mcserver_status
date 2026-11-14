@@ -32,6 +32,7 @@ class PluginErrorCode(StrEnum):
     UNKNOWN_ERROR = "ERR000"
 
 
+# 特别约定：message中只填返回的提示信息，格式化由捕获端负责
 class PluginException(Exception):
     """插件异常基类"""
 
@@ -43,6 +44,7 @@ class PluginException(Exception):
     ):
         self.code = code
         self.message = message
+        self.detail = detail
         super().__init__(f"[{code}] {message}")
 
 
@@ -73,3 +75,10 @@ class ConfigException(PluginException):
         super().__init__(code, message, detail)
         # 这里用于定位错误项
         self.indexes = indexes or []
+
+
+class InputException(PluginException):
+    """用户输入相关异常"""
+
+    def __init__(self, code: PluginErrorCode, message: str, detail: str | None = None):
+        super().__init__(code, message, detail)

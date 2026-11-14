@@ -13,9 +13,10 @@ from astrbot.core.star.star import star_map
 from astrbot.core.utils import astrbot_path
 
 from .src.config import PluginConfig, build_config_with_fallback
-from .src.exceptions import PluginErrorCode
+from .src.exceptions import InputException, PluginErrorCode
 from .src.renderer import Renderer
 from .src.tools import JEMSSBedrockTool, JEMSSJavaTool
+from .src.validator import parse_server_address
 
 
 class JEMSSPlugin(Star):
@@ -200,26 +201,33 @@ class JEMSSPlugin(Star):
     ):
         """实现服务器信息查询与渲染"""
 
-        # 提前定义 host 和 port 防止 pylance 报错，即使这样会导致在java版查询时产生无用变量
-        server_host = server_address
-        server_port = 19132 if is_bedrock else 25565
+        server_host: str
+        server_port: int | None
 
-        logger.info(f"Server address: {server_address}")
-        # TODO:将地址解析抽离为单独函数并优化
-        if is_bedrock:
-            if ":" in server_address:
-                server_addresss_parts = server_address.split(":")
-                server_host = server_addresss_parts[0]
-                server_port = int(server_addresss_parts[1])
-                logger.debug(f"Server host: {server_host}")
-                logger.debug(f"Server port: {server_port}")
+        logger.info(f"Input server address: {server_address}")
+        try:
+            parsed_address = parse_server_address(server_address)
+            server_host = parsed_address[0]
+            # 由于 mcstatus 会在 port 为 None 自动补为默认端口，所以这里不做处理
+            server_port = parsed_address[1]
+        except InputException as e:
+            logger.error(f"[{e.code}] {e.message}")
+            yield event.plain_result("无效的服务器地址")
+            return
+        logger.debug(f"Parsed Server host: {server_host}")
+        logger.debug(f"Parsed server port: {server_port}")
         # 服务器信息获取
         try:
             if is_bedrock:
                 server = BedrockServer(server_host, server_port, timeout=3)
                 server_status = await server.async_status()
             else:
-                server = await JavaServer.async_lookup(server_address)
+                # 重新构建合规地址
+                if server_port:
+                    java_server_address = f"{server_host}:{server_port}"
+                else:
+                    java_server_address = f"{server_host}"
+                server = await JavaServer.async_lookup(java_server_address, timeout=3)
                 # 这里由于mcstatus的默认协议版本为47，Velocity可能会将motd自动降级而不支持hex（webcolor）所以说这里设为26.2的协议版本776
                 server_status = await server.async_status(version=776)
         # TODO:更细致的异常反馈，但是由于mcstatus现在异常处理过于粗略，暂且搁置

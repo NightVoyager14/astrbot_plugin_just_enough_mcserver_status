@@ -9,6 +9,9 @@ from astrbot.core.agent.run_context import ContextWrapper
 from astrbot.core.agent.tool import FunctionTool, ToolExecResult
 from astrbot.core.astr_agent_context import AstrAgentContext
 
+from .exceptions import InputException
+from .validator import parse_server_address
+
 
 @dataclass
 class JEMSSJavaTool(FunctionTool[AstrAgentContext]):
@@ -33,7 +36,13 @@ class JEMSSJavaTool(FunctionTool[AstrAgentContext]):
     ) -> ToolExecResult:
         server_address = kwargs["server_address"]
         try:
-            server = await JavaServer.async_lookup(server_address)
+            server_host, server_port = parse_server_address(server_address)
+            # 重新构建合规地址
+            if server_port:
+                java_server_address = f"{server_host}:{server_port}"
+            else:
+                java_server_address = f"{server_host}"
+            server = await JavaServer.async_lookup(java_server_address, timeout=3)
             server_status = await server.async_status()
             tool_result = {
                 "address": f"{server.address.host}:{server.address.port}",
@@ -64,6 +73,10 @@ class JEMSSJavaTool(FunctionTool[AstrAgentContext]):
                     ],
                 }
             return json.dumps(tool_result, ensure_ascii=False, separators=(",", ":"))
+        except InputException as e:
+            logger.error(f"Tool Can't get server information {server_address}")
+            logger.error(f"Tool Error info: {e}")
+            return "Invalid input address."
         except Exception as e:
             logger.error(f"Tool Can't get server information {server_address}")
             logger.error(f"Tool Error info: {e}")
@@ -92,13 +105,10 @@ class JEMSSBedrockTool(FunctionTool[AstrAgentContext]):
     ) -> ToolExecResult:
         server_address = kwargs["server_address"]
         try:
-            if ":" in server_address:
-                server_addresss_parts = server_address.split(":")
-                server_host = server_addresss_parts[0]
-                server_port = int(server_addresss_parts[1])
-            else:
-                server_host = server_address
-                server_port = 19132
+            parsed_address = parse_server_address(server_address)
+            server_host = parsed_address[0]
+            # 由于 mcstatus 会在 port 为 None 自动补为默认端口，所以这里不做处理
+            server_port = parsed_address[1]
             server = BedrockServer(server_host, server_port, timeout=3)
             server_status = await server.async_status()
             tool_result = {
@@ -122,6 +132,10 @@ class JEMSSBedrockTool(FunctionTool[AstrAgentContext]):
             elif server_status.version.brand == "MCEE":
                 tool_result["version"]["brand"] = "Education Edition"
             return json.dumps(tool_result, ensure_ascii=False, separators=(",", ":"))
+        except InputException as e:
+            logger.error(f"Tool Can't get server information {server_address}")
+            logger.error(f"Tool Error info: {e}")
+            return "Invalid input address."
         except Exception as e:
             logger.error(f"Tool Can't get server information {server_address}")
             logger.error(f"Tool Error info: {e}")
